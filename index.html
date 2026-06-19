@@ -61,6 +61,23 @@
   .legend-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:4px}
   .section-label{font-size:11px;color:var(--text-secondary);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin:0 0 10px}
   .footer-note{font-size:11px;color:var(--text-tertiary);text-align:center;margin-top:30px;padding-top:16px;border-top:1px solid var(--border-light)}
+  .toolbar{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+  #search-box{flex:1;min-width:200px;font-size:13px;padding:9px 12px;border-radius:var(--radius-md);border:1px solid var(--border);background:var(--card);color:var(--text)}
+  #search-box:focus{outline:none;border-color:var(--blue)}
+  .filter-chip{display:flex;align-items:center;gap:6px;font-size:12px;background:var(--blue);color:#fff;padding:6px 10px 6px 12px;border-radius:var(--radius-md)}
+  .filter-chip button{background:none;border:none;color:#fff;cursor:pointer;font-size:14px;line-height:1;padding:0 2px;opacity:0.8}
+  .filter-chip button:hover{opacity:1}
+  .branch-name{cursor:pointer}
+  .branch-name:hover{color:var(--blue)}
+  .task-table th.sortable{cursor:pointer;user-select:none}
+  .task-table th.sortable:hover{color:var(--text)}
+  .sort-arrow{font-size:9px;margin-left:3px;opacity:0.5}
+  .sort-arrow.active{opacity:1;color:var(--blue)}
+  .status-check{cursor:pointer;width:15px;height:15px;border-radius:4px;border:1.5px solid var(--border);display:inline-flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0}
+  .status-check.checked{background:var(--blue);border-color:var(--blue);color:#fff}
+  .status-check:hover{border-color:var(--blue)}
+  .task-row-name{display:flex;align-items:center;gap:8px}
+  .no-results{padding:24px;text-align:center;color:var(--text-secondary);font-size:13px}
 </style>
 </head>
 <body>
@@ -94,6 +111,11 @@
     <span><span class="legend-dot" style="background:#185FA5"></span>Complete</span>
   </div>
 
+  <div class="toolbar">
+    <input type="text" id="search-box" placeholder="🔍 Search tasks…" oninput="handleSearch(this.value)" />
+    <div id="branch-filter-chip"></div>
+  </div>
+
   <p class="section-label">Branches</p>
   <div id="branch-grid" class="branch-grid"></div>
   <div id="modal-container"></div>
@@ -105,6 +127,9 @@
 const BRANCHES=['CNN','ISMA','TSKL','RML','CPL','FTL','KSD','LK'];
 const PERSONS=['F1','RB'];
 let activePerson='all';
+let searchTerm='';
+let isolatedBranch=null;
+let sortState={key:null,dir:1}; // dir: 1 asc, -1 desc
 
 let state=JSON.parse(localStorage.getItem('f1rb_dashboard')||'null') || {sheetUrl:'',tasks:generateSampleTasks()};
 
@@ -133,7 +158,94 @@ function generateSampleTasks(){
   return tasks;
 }
 
-function filteredTasks(){return activePerson==='all'?state.tasks:state.tasks.filter(t=>t.assignee===activePerson)}
+function filteredTasks(){
+  let tasks = activePerson==='all'?state.tasks:state.tasks.filter(t=>t.assignee===activePerson);
+  if(isolatedBranch) tasks = tasks.filter(t=>t.branch===isolatedBranch);
+  if(searchTerm.trim()){
+    const q = searchTerm.toLowerCase();
+    tasks = tasks.filter(t => t.name.toLowerCase().includes(q) || t.branch.toLowerCase().includes(q) || t.assignee.toLowerCase().includes(q));
+  }
+  return tasks;
+}
+
+function handleSearch(val){ searchTerm = val; renderBranches(); }
+
+function isolateBranch(b){
+  isolatedBranch = isolatedBranch === b ? null : b;
+  render();
+}
+
+function clearIsolation(){ isolatedBranch = null; render(); }
+
+function toggleSort(key){
+  if(sortState.key === key){ sortState.dir *= -1; }
+  else { sortState.key = key; sortState.dir = 1; }
+  renderBranches();
+}
+
+function sortTasks(tasks){
+  if(!sortState.key) return tasks;
+  const {key, dir} = sortState;
+  return [...tasks].sort((a,b)=>{
+    let av = a[key], bv = b[key];
+    if(key === 'due'){ av = new Date(av); bv = new Date(bv); }
+    if(key === 'pct'){ av = Number(av); bv = Number(bv); }
+    if(av < bv) return -1 * dir;
+    if(av > bv) return 1 * dir;
+    return 0;
+  });
+}
+
+function toggleDone(id){
+  const t = state.tasks.find(x=>x.id===id);
+  if(!t) return;
+  t.pct = t.pct === 100 ? 0 : 100;
+  t.status = deriveStatus(t.pct, t.due);
+  render();
+}
+
+function openTaskDetail(id){
+  const t = state.tasks.find(x=>x.id===id); if(!t) return;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const due = new Date(t.due+'T00:00:00');
+  const diffDays = Math.round((due-today)/86400000);
+  const statusLabel = t.pct===100 ? 'Complete' : diffDays<0 ? `Overdue by ${Math.abs(diffDays)} day${Math.abs(diffDays)===1?'':'s'}` : diffDays===0 ? 'Due today' : `Due in ${diffDays} day${diffDays===1?'':'s'}`;
+  const statusColor = t.pct===100?'#185FA5':diffDays<0?'#A32D2D':diffDays<=7?'#BA7517':'#639922';
+
+  document.getElementById('modal-container').innerHTML=`
+    <div class="modal-bg" onclick="closeModal(event)">
+      <div class="modal" onclick="event.stopPropagation()" style="width:380px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">
+          <h3 style="margin-bottom:4px">${t.name}</h3>
+          <span class="status-check${t.pct===100?' checked':''}" style="cursor:pointer;flex-shrink:0;margin-top:2px" onclick="toggleDone(${t.id});openTaskDetail(${t.id})" title="Toggle complete">${t.pct===100?'✓':''}</span>
+        </div>
+        <div style="font-size:12px;color:var(--text-secondary);margin-bottom:16px">${t.branch} · ${t.assignee}</div>
+
+        <div style="background:var(--bg);border-radius:var(--radius-md);padding:12px 14px;margin-bottom:14px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <span style="font-size:12px;color:var(--text-secondary)">Progress</span>
+            <span style="font-size:13px;font-weight:600;color:${barColor(t)}">${t.pct}%</span>
+          </div>
+          <div class="bar-wrap" style="width:100%;height:7px"><div class="bar-fill" style="width:${t.pct}%;background:${barColor(t)};height:7px"></div></div>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px">
+          <span style="color:var(--text-secondary)">Expected completion</span>
+          <span>${formatDate(t.due)}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:18px">
+          <span style="color:var(--text-secondary)">Status</span>
+          <span style="color:${statusColor};font-weight:500">${statusLabel}</span>
+        </div>
+
+        <div class="modal-actions">
+          <button onclick="closeModal()">Close</button>
+          <button class="btn-primary" onclick="openEditModal(${t.id})">Edit task</button>
+        </div>
+      </div>
+    </div>`;
+}
+
 function branchAvg(b){const t=filteredTasks().filter(t=>t.branch===b);return t.length?Math.round(t.reduce((s,t)=>s+t.pct,0)/t.length):0}
 function avgColor(p){return p===100?'#185FA5':p>=70?'#639922':p>=40?'#BA7517':'#A32D2D'}
 function barColor(t){return t.pct===100?'#185FA5':t.status==='overdue'?'#A32D2D':t.status==='soon'?'#BA7517':'#639922'}
@@ -161,28 +273,54 @@ function activeBranches(){
   return fromTasks.length ? fromTasks.sort() : BRANCHES;
 }
 
+function sortArrow(key){
+  if(sortState.key !== key) return '<span class="sort-arrow">↕</span>';
+  return `<span class="sort-arrow active">${sortState.dir===1?'↑':'↓'}</span>`;
+}
+
+function renderBranchFilterChip(){
+  const el = document.getElementById('branch-filter-chip');
+  if(!isolatedBranch){ el.innerHTML=''; return; }
+  el.innerHTML = `<div class="filter-chip">Showing: ${isolatedBranch}<button onclick="clearIsolation()">✕</button></div>`;
+}
+
 function renderBranches(){
+  renderBranchFilterChip();
   const grid=document.getElementById('branch-grid');
-  grid.innerHTML=activeBranches().map(b=>{
-    const tasks=filteredTasks().filter(t=>t.branch===b);
+  const branchesToShow = isolatedBranch ? [isolatedBranch] : activeBranches();
+
+  grid.innerHTML=branchesToShow.map(b=>{
+    let tasks=filteredTasks().filter(t=>t.branch===b);
+    tasks = sortTasks(tasks);
     const avg=branchAvg(b);const color=avgColor(avg);
     const rows=tasks.map(t=>`
-      <tr>
-        <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${t.name}">${t.name}</td>
+      <tr onclick="openTaskDetail(${t.id})" style="cursor:pointer">
+        <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${t.name}">
+          <div class="task-row-name">
+            <span class="status-check${t.pct===100?' checked':''}" onclick="event.stopPropagation();toggleDone(${t.id})" title="Toggle complete">${t.pct===100?'✓':''}</span>
+            <span>${t.name}</span>
+          </div>
+        </td>
         <td><span style="font-size:10px;background:var(--border-light);padding:2px 7px;border-radius:8px;color:var(--text-secondary)">${t.assignee}</span></td>
         <td><div style="display:flex;align-items:center;gap:6px"><div class="bar-wrap" style="width:50px"><div class="bar-fill" style="width:${t.pct}%;background:${barColor(t)}"></div></div><span class="pct-label" style="color:${barColor(t)}">${t.pct}%</span></div></td>
         <td><span class="due ${dueDateClass(t)}">${formatDate(t.due)}</span></td>
-        <td><button onclick="openEditModal(${t.id})" style="background:none;border:none;cursor:pointer;padding:2px 4px;color:var(--text-secondary);font-size:13px">✎</button></td>
+        <td><button onclick="event.stopPropagation();openEditModal(${t.id})" style="background:none;border:none;cursor:pointer;padding:2px 4px;color:var(--text-secondary);font-size:13px">✎</button></td>
       </tr>`).join('');
     return `
       <div class="branch-card">
         <div class="branch-header">
-          <span class="branch-name">${b}</span>
+          <span class="branch-name" onclick="isolateBranch('${b}')" title="Click to focus this branch">${b}</span>
           <span class="branch-avg" style="color:${color}">${avg}% avg</span>
         </div>
         <table class="task-table">
-          <thead><tr><th>Task</th><th>Who</th><th>Progress</th><th>Due date</th><th></th></tr></thead>
-          <tbody>${rows||'<tr><td colspan="5" style="padding:14px;color:var(--text-secondary);text-align:center">No tasks</td></tr>'}</tbody>
+          <thead><tr>
+            <th class="sortable" onclick="toggleSort('name')">Task ${sortArrow('name')}</th>
+            <th class="sortable" onclick="toggleSort('assignee')">Who ${sortArrow('assignee')}</th>
+            <th class="sortable" onclick="toggleSort('pct')">Progress ${sortArrow('pct')}</th>
+            <th class="sortable" onclick="toggleSort('due')">Due date ${sortArrow('due')}</th>
+            <th></th>
+          </tr></thead>
+          <tbody>${rows||`<tr><td colspan="5" class="no-results">${searchTerm?'No matching tasks':'No tasks'}</td></tr>`}</tbody>
         </table>
         <button class="add-btn" onclick="openAddModal('${b}')">+ Add task</button>
       </div>`;
