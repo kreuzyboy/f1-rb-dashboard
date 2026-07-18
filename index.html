@@ -1,582 +1,508 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>F1 & RB — Tasks & Objectives</title>
 <style>
-/* ── THEME TOKENS ───────────────────────────────────────────── */
-:root{
-  --accent:#6C63FF; --accent-2:#00D4AA; --accent-glow:rgba(108,99,255,.25);
-  --danger:#FF5C5C; --warn:#FFB830; --success:#00D4AA;
-  --radius-sm:6px; --radius-md:10px; --radius-lg:14px; --radius-xl:18px;
-  --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-  --transition:all .18s ease;
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap');
+
+:root {
+  --bg:#0d1117; --surface:#161b22; --surface2:#1c2230; --surface3:#1f2937;
+  --border:#30363d; --border2:#3d4451;
+  --accent:#6C63FF; --accent2:#00D4AA;
+  --accent-dim:rgba(108,99,255,0.13); --accent2-dim:rgba(0,212,170,0.13);
+  --text:#e6edf3; --muted:#8b949e; --muted2:#6e7681;
+  --danger:#f85149; --warn:#d29922; --success:#3fb950;
+  --font:'Inter',system-ui,sans-serif; --mono:'DM Mono',monospace;
+  --r:10px; --rs:6px;
 }
-[data-theme="dark"]{
-  --bg:#0C0E14; --surface:#13161F; --card:#1A1D28;
-  --border:#272B3A; --border-light:#1F2330;
-  --text:#E8EAF0; --text-2:#8B92A8; --text-3:#555E75;
-  --glass:rgba(255,255,255,.04); --shadow:0 4px 24px rgba(0,0,0,.4);
-  --header-bg:linear-gradient(135deg,#13161F 0%,#0C0E14 100%);
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.5;}
+
+/* topbar */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:13px 26px;border-bottom:1px solid var(--border);background:var(--surface);position:sticky;top:0;z-index:60;gap:10px;flex-wrap:wrap;}
+.logo{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+.app-title{font-size:15px;font-weight:600;white-space:nowrap;}
+.tag{font-size:11px;color:var(--muted);background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:2px 9px;white-space:nowrap;}
+.topbar-r{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.sync-row{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--muted);}
+.sdot{width:7px;height:7px;border-radius:50%;background:var(--muted2);}
+.sdot.ok{background:var(--success);} .sdot.err{background:var(--danger);} .sdot.spin{background:var(--warn);animation:blink 1s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:var(--rs);font-size:12px;font-family:var(--font);font-weight:500;cursor:pointer;border:1px solid var(--border2);background:var(--surface2);color:var(--text);transition:background .15s;white-space:nowrap;}
+.btn:hover{background:var(--border);}
+.btn.ghost{background:transparent;border-color:transparent;color:var(--muted);}
+.btn.ghost:hover{background:var(--surface2);color:var(--text);}
+
+/* kpi strip */
+.kpi-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:1px;background:var(--border);border-bottom:1px solid var(--border);}
+.kpi{background:var(--surface);padding:13px 18px;}
+.kpi-v{font-size:22px;font-weight:600;font-family:var(--mono);}
+.kpi-v.a{color:var(--accent);} .kpi-v.g{color:var(--success);} .kpi-v.w{color:var(--warn);} .kpi-v.d{color:var(--danger);}
+.kpi-l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:2px;}
+
+/* filter bar */
+.fbar{display:flex;align-items:center;gap:8px;padding:10px 26px;border-bottom:1px solid var(--border);flex-wrap:wrap;}
+.search-w{position:relative;flex:1;min-width:160px;max-width:280px;}
+.search-w svg{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--muted2);pointer-events:none;}
+.si{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);color:var(--text);font-family:var(--font);font-size:13px;padding:7px 10px 7px 30px;outline:none;transition:border-color .15s;}
+.si:focus{border-color:var(--accent);}
+.si::placeholder{color:var(--muted2);}
+.chips{display:flex;gap:5px;flex-wrap:wrap;}
+.chip{padding:4px 11px;border-radius:20px;border:1px solid var(--border);background:var(--surface);color:var(--muted);font-size:12px;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.chip:hover{border-color:var(--border2);color:var(--text);}
+.chip.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent);}
+.chip.f1.active{background:var(--accent2-dim);border-color:var(--accent2);color:var(--accent2);}
+
+/* grid */
+.grid{padding:20px 26px;display:grid;grid-template-columns:repeat(auto-fill,minmax(400px,1fr));gap:14px;}
+
+/* branch card */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;transition:border-color .15s;}
+.card:hover{border-color:var(--border2);}
+.card-head{display:flex;align-items:center;justify-content:space-between;padding:12px 15px 9px;border-bottom:1px solid var(--border);}
+.bname{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;}
+.bicon{width:27px;height:27px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;font-family:var(--mono);flex-shrink:0;}
+.btask-count{font-size:11px;color:var(--muted);font-weight:400;}
+.ring-w{position:relative;width:38px;height:38px;flex-shrink:0;}
+.ring-w svg{width:38px;height:38px;}
+.ring-lbl{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;font-family:var(--mono);color:var(--text);}
+.prog-track{height:3px;background:var(--border);}
+.prog-fill{height:3px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .4s;}
+
+/* tasks */
+.tasks-scroll{max-height:300px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border2) transparent;}
+.tasks-scroll::-webkit-scrollbar{width:4px;}
+.tasks-scroll::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px;}
+table{width:100%;border-collapse:collapse;}
+th{font-size:10px;font-weight:600;color:var(--muted2);text-transform:uppercase;letter-spacing:.5px;padding:7px 13px 5px;text-align:left;border-bottom:1px solid var(--border);}
+
+/* task row + hover expand */
+.trow{border-bottom:1px solid var(--border);cursor:pointer;transition:background .12s;}
+.trow:last-child{border-bottom:none;}
+.trow:hover{background:var(--surface3);}
+.trow.completed td{opacity:.42;}
+.trow.completed .tname{text-decoration:line-through;color:var(--muted);}
+.trow.overdue .tdate{color:var(--danger);}
+.trow.soon .tdate{color:var(--warn);}
+.trow td{padding:8px 13px;vertical-align:middle;}
+
+/* expanded detail panel */
+.detail-row{background:var(--surface2);}
+.detail-row td{padding:0;}
+.detail-panel{
+  overflow:hidden;
+  max-height:0;
+  transition:max-height .25s ease, padding .25s ease;
 }
-[data-theme="light"]{
-  --bg:#F0F2FA; --surface:#FFFFFF; --card:#FFFFFF;
-  --border:#DDE1EE; --border-light:#E8ECF5;
-  --text:#1A1D2E; --text-2:#5A6180; --text-3:#A0A8C0;
-  --glass:rgba(255,255,255,.7); --shadow:0 4px 24px rgba(108,99,255,.10);
-  --header-bg:linear-gradient(135deg,#FFFFFF 0%,#F0F2FA 100%);
-}
+.detail-panel.open{max-height:200px;}
+.detail-inner{padding:10px 13px 12px 52px;display:grid;grid-template-columns:1fr 1fr;gap:8px 20px;}
+.detail-field{display:flex;flex-direction:column;gap:2px;}
+.detail-label{font-size:10px;color:var(--muted2);text-transform:uppercase;letter-spacing:.4px;}
+.detail-value{font-size:12px;color:var(--text);}
+.detail-value.note{color:var(--muted);font-style:italic;}
+.detail-actions{display:flex;gap:6px;align-items:center;margin-top:6px;}
+.del-btn{font-size:11px;color:var(--danger);background:none;border:1px solid rgba(248,81,73,.3);border-radius:4px;padding:3px 8px;cursor:pointer;transition:background .15s;}
+.del-btn:hover{background:rgba(248,81,73,.1);}
 
-/* ── RESET ──────────────────────────────────────────────────── */
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;transition:background .25s,color .25s}
-button,input,select{font-family:var(--font);color:var(--text);background:var(--card);border:1px solid var(--border)}
-input,select{border-radius:var(--radius-sm);padding:8px 10px;font-size:13px;width:100%;outline:none;transition:var(--transition)}
-input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+.tname{font-size:13px;color:var(--text);font-weight:500;}
+.tdate{font-size:11px;font-family:var(--mono);color:var(--muted);white-space:nowrap;}
+.pbadge{display:inline-block;font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;white-space:nowrap;}
+.pbadge.F1{background:var(--accent2-dim);color:var(--accent2);}
+.pbadge.RB{background:var(--accent-dim);color:var(--accent);}
+.pbadge.Both{background:rgba(200,200,200,.09);color:var(--muted);}
 
-/* ── HEADER ─────────────────────────────────────────────────── */
-.header{background:var(--header-bg);border-bottom:1px solid var(--border);padding:0 28px;position:sticky;top:0;z-index:50;backdrop-filter:blur(12px)}
-.header-inner{max-width:1280px;margin:0 auto;height:62px;display:flex;align-items:center;justify-content:space-between;gap:16px}
-.logo-area{display:flex;align-items:center;gap:12px}
-.logo-icon{width:38px;height:38px;border-radius:var(--radius-md);background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;box-shadow:0 4px 12px var(--accent-glow)}
-.logo-title{font-size:16px;font-weight:700;letter-spacing:-.3px}
-.logo-sub{font-size:11px;color:var(--text-2);margin-top:1px}
-.header-actions{display:flex;align-items:center;gap:8px}
-.sync-status{font-size:11px;color:var(--text-3);max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.icon-btn{width:34px;height:34px;border-radius:var(--radius-md);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:var(--transition);background:var(--glass);border:1px solid var(--border)}
-.icon-btn:hover{background:var(--border);transform:scale(1.05)}
-.sync-btn{height:34px;padding:0 14px;border-radius:var(--radius-md);cursor:pointer;font-size:12px;font-weight:600;background:linear-gradient(135deg,var(--accent),#8A82FF);color:#fff;border:none;letter-spacing:.3px;transition:var(--transition);display:flex;align-items:center;gap:6px}
-.sync-btn:hover{opacity:.88;transform:translateY(-1px)}
-.sync-btn.spinning .spin{display:inline-block;animation:spin .7s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
+.cbtn{width:21px;height:21px;border-radius:50%;border:1.5px solid var(--border2);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0;}
+.cbtn:hover{border-color:var(--accent2);background:var(--accent2-dim);}
+.cbtn.done{border-color:var(--success);background:rgba(63,185,80,.15);}
+.cbtn svg{display:none;}
+.cbtn.done svg{display:block;}
 
-/* ── MAIN LAYOUT ─────────────────────────────────────────────── */
-.main{max-width:1280px;margin:0 auto;padding:24px 28px}
+/* add-task form */
+.add-toggle{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--muted);background:none;border:none;cursor:pointer;padding:8px 13px;width:100%;text-align:left;transition:color .15s;border-top:1px solid var(--border);}
+.add-toggle:hover{color:var(--accent);}
+.add-form-wrap{border-top:1px solid var(--border);background:var(--surface2);padding:10px 13px 12px;}
+.af-grid{display:grid;grid-template-columns:1fr 80px 80px;gap:7px;margin-bottom:7px;}
+.af-grid2{display:grid;grid-template-columns:1fr;gap:7px;margin-bottom:8px;}
+.af-input,.af-select{background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);color:var(--text);font-family:var(--font);font-size:12px;padding:5px 8px;outline:none;width:100%;transition:border-color .15s;}
+.af-input:focus,.af-select:focus{border-color:var(--accent);}
+.af-input::placeholder{color:var(--muted2);}
+.af-select option{background:var(--surface2);}
+.af-btns{display:flex;gap:6px;}
+.af-submit{background:var(--accent);border:none;border-radius:var(--rs);color:#fff;font-family:var(--font);font-size:12px;font-weight:500;padding:5px 12px;cursor:pointer;transition:background .15s;}
+.af-submit:hover{background:#5a53e6;}
+.af-cancel{background:transparent;border:1px solid var(--border2);border-radius:var(--rs);color:var(--muted);font-family:var(--font);font-size:12px;padding:5px 10px;cursor:pointer;}
+.af-cancel:hover{color:var(--text);}
 
-/* ── CONNECT BAR ─────────────────────────────────────────────── */
-.connect-bar{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 18px;display:flex;align-items:center;gap:12px;margin-bottom:24px;flex-wrap:wrap;box-shadow:var(--shadow)}
-.connect-bar .cb-label{font-size:12px;font-weight:600;color:var(--text-2);white-space:nowrap;display:flex;align-items:center;gap:6px}
-.connect-bar input{flex:1;min-width:220px;background:var(--bg);border-color:var(--border-light)}
-.connect-btn{height:36px;padding:0 18px;border-radius:var(--radius-md);background:linear-gradient(135deg,var(--accent),#8A82FF);color:#fff;border:none;cursor:pointer;font-size:13px;font-weight:600;white-space:nowrap;transition:var(--transition)}
-.connect-btn:hover{opacity:.88}
+/* empty */
+.empty{padding:22px;text-align:center;color:var(--muted2);font-size:13px;}
 
-/* ── KPI ROW ─────────────────────────────────────────────────── */
-.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:24px}
-.kpi{background:var(--card);border:1px solid var(--border-light);border-radius:var(--radius-lg);padding:16px 18px;position:relative;overflow:hidden;transition:var(--transition);box-shadow:var(--shadow)}
-.kpi:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.2)}
-.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:3px 3px 0 0;background:linear-gradient(90deg,var(--accent),var(--accent-2))}
-.kpi .k-icon{font-size:20px;margin-bottom:8px}
-.kpi .k-label{font-size:11px;color:var(--text-2);font-weight:500;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
-.kpi .k-val{font-size:28px;font-weight:700;line-height:1;margin-bottom:3px}
-.kpi .k-sub{font-size:11px;color:var(--text-3)}
+/* loading bar */
+.lbar{height:2px;background:linear-gradient(90deg,var(--accent),var(--accent2),var(--accent));background-size:200%;animation:sh 1.2s infinite;position:fixed;top:0;left:0;right:0;z-index:99;display:none;}
+.lbar.on{display:block;}
+@keyframes sh{0%{background-position:100%}100%{background-position:-100%}}
 
-/* ── TOOLBAR ─────────────────────────────────────────────────── */
-.toolbar-row{display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap}
-.person-tabs{display:flex;gap:6px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:4px}
-.tab{padding:6px 16px;border-radius:var(--radius-md);font-size:13px;font-weight:500;cursor:pointer;border:none;background:transparent;color:var(--text-2);transition:var(--transition)}
-.tab.active{background:linear-gradient(135deg,var(--accent),#8A82FF);color:#fff;box-shadow:0 2px 8px var(--accent-glow)}
-.tab:hover:not(.active){background:var(--border-light);color:var(--text)}
-.search-wrap{flex:1;min-width:200px;position:relative}
-.search-wrap input{padding-left:36px;background:var(--card);border-radius:var(--radius-lg)}
-.search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:14px;color:var(--text-3);pointer-events:none}
-.filter-chip{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;background:linear-gradient(135deg,var(--accent),#8A82FF);color:#fff;padding:6px 10px 6px 14px;border-radius:var(--radius-lg)}
-.filter-chip button{background:none;border:none;color:#fff;cursor:pointer;font-size:15px;line-height:1;padding:0 2px;opacity:.8}
-.filter-chip button:hover{opacity:1}
+/* toast */
+.toast{position:fixed;bottom:22px;right:22px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--r);padding:11px 16px;font-size:13px;color:var(--text);z-index:200;opacity:0;transform:translateY(8px);transition:all .2s;pointer-events:none;max-width:280px;}
+.toast.show{opacity:1;transform:translateY(0);}
+.toast.ok{border-left:3px solid var(--success);}
+.toast.err{border-left:3px solid var(--danger);}
 
-/* ── LEGEND ──────────────────────────────────────────────────── */
-.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:11px;color:var(--text-2);margin-bottom:16px;align-items:center}
-.legend-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px}
-
-/* ── SECTION LABEL ───────────────────────────────────────────── */
-.section-label{font-size:11px;color:var(--text-2);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin:0 0 12px;display:flex;align-items:center;gap:8px}
-.section-label::after{content:'';flex:1;height:1px;background:var(--border)}
-
-/* ── BRANCH GRID ─────────────────────────────────────────────── */
-.branch-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px;margin-bottom:28px}
-.branch-card{background:var(--card);border:1px solid var(--border-light);border-radius:var(--radius-xl);overflow:hidden;box-shadow:var(--shadow);transition:var(--transition)}
-.branch-card:hover{box-shadow:0 8px 32px rgba(108,99,255,.12);border-color:var(--accent)}
-.branch-header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:var(--surface);border-bottom:1px solid var(--border-light)}
-.branch-tag{display:flex;align-items:center;gap:8px}
-.branch-badge{width:28px;height:28px;border-radius:var(--radius-sm);background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0}
-.branch-name{font-size:14px;font-weight:700;color:var(--text);cursor:pointer;transition:var(--transition)}
-.branch-name:hover{color:var(--accent)}
-.branch-meta{font-size:11px;color:var(--text-3);margin-top:1px}
-.branch-right{display:flex;align-items:center;gap:10px}
-.avg-badge{font-size:12px;font-weight:700;padding:4px 10px;border-radius:20px;background:var(--bg)}
-.mini-ring{position:relative;width:36px;height:36px;flex-shrink:0}
-.mini-ring svg{transform:rotate(-90deg)}
-.mini-ring .ring-val{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700}
-
-/* ── TASK TABLE ──────────────────────────────────────────────── */
-.task-table{width:100%;border-collapse:collapse;font-size:12px}
-.task-table th{padding:8px 16px;text-align:left;color:var(--text-3);font-weight:600;border-bottom:1px solid var(--border-light);font-size:10px;text-transform:uppercase;letter-spacing:.05em;background:var(--surface)}
-.task-table th.sortable{cursor:pointer;user-select:none;transition:var(--transition)}
-.task-table th.sortable:hover{color:var(--accent)}
-.sort-arrow{font-size:9px;margin-left:3px;opacity:.4}
-.sort-arrow.active{opacity:1;color:var(--accent)}
-.task-table td{padding:9px 16px;color:var(--text);vertical-align:middle;transition:background .12s}
-.task-table tr:not(:last-child) td{border-bottom:1px solid var(--border-light)}
-.task-table tr.task-row:hover td{background:var(--border-light)}
-.task-table tr.task-row{cursor:pointer}
-.task-row-name{display:flex;align-items:center;gap:8px}
-.task-name-text{max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.expand-chevron{font-size:9px;color:var(--text-3);display:inline-block;transition:transform .18s;flex-shrink:0}
-.expand-chevron.open{transform:rotate(90deg);color:var(--accent)}
-
-/* ── STATUS CHECK ────────────────────────────────────────────── */
-.status-check{cursor:pointer;width:16px;height:16px;border-radius:4px;border:1.5px solid var(--border);display:inline-flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;transition:var(--transition)}
-.status-check.checked{background:linear-gradient(135deg,var(--accent),var(--accent-2));border-color:var(--accent);color:#fff}
-.status-check:hover{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
-
-/* ── PROGRESS BAR ────────────────────────────────────────────── */
-.bar-wrap{background:var(--border);border-radius:4px;height:6px;min-width:50px;overflow:hidden}
-.bar-fill{height:6px;border-radius:4px;transition:width .4s ease}
-.pct-label{font-size:11px;font-weight:700;min-width:32px;text-align:right;display:inline-block}
-
-/* ── DUE DATE ────────────────────────────────────────────────── */
-.due{font-size:11px;font-weight:500;padding:2px 7px;border-radius:10px;white-space:nowrap}
-.due.ok{color:#00D4AA;background:rgba(0,212,170,.1)}
-.due.soon{color:#FFB830;background:rgba(255,184,48,.1)}
-.due.overdue{color:#FF5C5C;background:rgba(255,92,92,.1)}
-
-/* ── ASSIGNEE PILL ───────────────────────────────────────────── */
-.assignee-pill{font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;background:var(--border-light);color:var(--text-2);letter-spacing:.03em}
-
-/* ── EXPAND ROW ──────────────────────────────────────────────── */
-.expand-row td{padding:0!important;border-bottom:1px solid var(--border-light)!important}
-.expand-panel{background:var(--bg);padding:16px 18px 16px 40px;animation:expandFade .18s ease}
-@keyframes expandFade{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
-.expand-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 20px;margin-bottom:12px}
-.expand-label{display:block;font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px;font-weight:600}
-.expand-val{display:block;font-size:13px;color:var(--text);font-weight:500}
-.expand-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
-.expand-btn{font-size:12px;font-weight:600;padding:6px 16px;cursor:pointer;border-radius:var(--radius-md);background:linear-gradient(135deg,var(--accent),#8A82FF);color:#fff;border:none;transition:var(--transition)}
-.expand-btn:hover{opacity:.88;transform:translateY(-1px)}
-
-/* ── MODAL ───────────────────────────────────────────────────── */
-.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:flex-start;justify-content:center;padding-top:70px;z-index:200;backdrop-filter:blur(4px)}
-.modal{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-xl);padding:26px;width:380px;box-shadow:0 20px 60px rgba(0,0,0,.4);animation:modalIn .2s ease}
-@keyframes modalIn{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)}}
-.modal h3{font-size:17px;font-weight:700;margin-bottom:6px}
-.modal .modal-sub{font-size:12px;color:var(--text-2);margin-bottom:18px}
-.modal label{font-size:11px;font-weight:600;color:var(--text-2);display:block;margin-bottom:4px;margin-top:14px;text-transform:uppercase;letter-spacing:.04em}
-.modal-actions{display:flex;gap:8px;margin-top:20px}
-.modal-actions button{flex:1;padding:10px;font-size:13px;font-weight:600;cursor:pointer;border-radius:var(--radius-md);transition:var(--transition)}
-.btn-primary{background:linear-gradient(135deg,var(--accent),#8A82FF)!important;color:#fff!important;border:none!important}
-.btn-primary:hover{opacity:.88!important;transform:translateY(-1px)!important}
-.btn-danger{color:var(--danger)!important;border-color:var(--danger)!important}
-.btn-danger:hover{background:rgba(255,92,92,.1)!important}
-
-/* ── NO RESULTS ──────────────────────────────────────────────── */
-.no-results{padding:28px;text-align:center;color:var(--text-3);font-size:13px}
-
-/* ── FOOTER ──────────────────────────────────────────────────── */
-.footer{text-align:center;font-size:11px;color:var(--text-3);padding:20px 0 10px;border-top:1px solid var(--border-light)}
-
-/* ── SCROLLBAR ───────────────────────────────────────────────── */
-::-webkit-scrollbar{width:6px;height:6px}
-::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+@media(max-width:600px){.grid{padding:12px;grid-template-columns:1fr;}.topbar,.fbar{padding:10px 13px;}}
 </style>
 </head>
 <body>
 
-<!-- HEADER -->
-<header class="header">
-  <div class="header-inner">
-    <div class="logo-area">
-      <div class="logo-icon">🎯</div>
-      <div>
-        <div class="logo-title">F1 &amp; RB — Tasks &amp; Objectives</div>
-        <div class="logo-sub">CNN Umbrella · Google Sheets live sync</div>
-      </div>
+<div class="lbar" id="lbar"></div>
+<div class="toast" id="toast"></div>
+
+<!-- Top bar -->
+<div class="topbar">
+  <div style="display:flex;align-items:center;gap:10px">
+    <div class="logo">🎯</div>
+    <span class="app-title">F1 & RB — Tasks & Objectives</span>
+    <span class="tag">CNN Umbrella · Google Sheets live</span>
+  </div>
+  <div class="topbar-r">
+    <div class="sync-row">
+      <div class="sdot spin" id="sdot"></div>
+      <span id="slabel">Connecting…</span>
     </div>
-    <div class="header-actions">
-      <span class="sync-status" id="last-sync">No sheet connected yet</span>
-      <button class="icon-btn" onclick="toggleTheme()" id="theme-btn" title="Toggle light/dark">🌙</button>
-      <button class="sync-btn" id="sync-btn" onclick="syncFromSheet()"><span class="spin">↻</span> Sync</button>
-    </div>
+    <button class="btn" onclick="syncData()">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+      Sync
+    </button>
+    <button class="btn ghost" onclick="exportCSV()">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Export
+    </button>
   </div>
-</header>
-
-<!-- MAIN -->
-<div class="main">
-
-  <!-- CONNECT BAR -->
-  <div class="connect-bar">
-    <div class="cb-label">📊 Data source</div>
-    <input type="text" id="sheet-url" placeholder="Paste your Apps Script web app URL (ends in /exec)…" />
-    <button class="connect-btn" onclick="connectSheet()">Connect</button>
-  </div>
-
-  <!-- KPIs -->
-  <div id="kpis" class="kpi-row"></div>
-
-  <!-- TOOLBAR -->
-  <div class="toolbar-row">
-    <div id="person-tabs" class="person-tabs"></div>
-    <div class="search-wrap">
-      <span class="search-icon">🔍</span>
-      <input type="text" id="search-box" placeholder="Search tasks, branches, assignees…" oninput="handleSearch(this.value)" />
-    </div>
-    <div id="branch-filter-chip"></div>
-  </div>
-
-  <!-- LEGEND -->
-  <div class="legend">
-    <span><span class="legend-dot" style="background:#00D4AA"></span>On track</span>
-    <span><span class="legend-dot" style="background:#FFB830"></span>Due soon (≤7 days)</span>
-    <span><span class="legend-dot" style="background:#FF5C5C"></span>Overdue</span>
-    <span><span class="legend-dot" style="background:#6C63FF"></span>Complete</span>
-  </div>
-
-  <!-- BRANCHES -->
-  <div class="section-label">Branches</div>
-  <div id="branch-grid" class="branch-grid"></div>
-
-  <!-- MODALS -->
-  <div id="modal-container"></div>
-
-  <div class="footer">F1 &amp; RB Tasks &amp; Objectives · Connect a Google Sheet for shared cross-device data</div>
 </div>
 
+<!-- KPI strip -->
+<div class="kpi-strip">
+  <div class="kpi"><div class="kpi-v a" id="kTotal">—</div><div class="kpi-l">Total tasks</div></div>
+  <div class="kpi"><div class="kpi-v g" id="kDone">—</div><div class="kpi-l">Completed</div></div>
+  <div class="kpi"><div class="kpi-v w" id="kPending">—</div><div class="kpi-l">In progress</div></div>
+  <div class="kpi"><div class="kpi-v d" id="kOverdue">—</div><div class="kpi-l">Overdue</div></div>
+  <div class="kpi"><div class="kpi-v a" id="kOverall">—%</div><div class="kpi-l">Overall completion</div></div>
+</div>
+
+<!-- Filter bar -->
+<div class="fbar">
+  <div class="search-w">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input class="si" id="si" placeholder="Search tasks…" oninput="renderAll()">
+  </div>
+  <div class="chips" id="schips">
+    <div class="chip active" onclick="setFilter('status','all',this)">All</div>
+    <div class="chip" onclick="setFilter('status','pending',this)">In progress</div>
+    <div class="chip" onclick="setFilter('status','overdue',this)">Overdue</div>
+    <div class="chip" onclick="setFilter('status','done',this)">Completed</div>
+  </div>
+  <div class="chips" id="pchips">
+    <div class="chip active" onclick="setFilter('person','all',this)">Everyone</div>
+    <div class="chip f1" onclick="setFilter('person','F1',this)">F1</div>
+    <div class="chip" onclick="setFilter('person','RB',this)">RB</div>
+  </div>
+</div>
+
+<!-- Grid -->
+<div class="grid" id="grid"></div>
+
 <script>
-const BRANCHES=['CNN','ISMA','TSKL','RML','CPL','FTL','KSD','LK'];
-const PERSONS=['F1','RB'];
-let activePerson='all';
-let searchTerm='';
-let isolatedBranch=null;
-let sortState={key:null,dir:1};
-let expandedTaskId=null;
+const SCRIPT = "https://script.google.com/macros/s/AKfycbyBDHjooGJ5DEtR8Ob0BKuxjXZly2PeRt3Maz_IpdTN3jroU1FLE9LYbR-3QoTTNYM/exec";
+const BRANCHES = ["CNN","ISMA","TSKL","RML","CPL","FTL","KSD","LK"];
+const COLORS = {CNN:"#6C63FF",ISMA:"#00D4AA",TSKL:"#f0883e",RML:"#e06c75",CPL:"#61afef",FTL:"#c678dd",KSD:"#98c379",LK:"#e5c07b"};
 
-let state=JSON.parse(localStorage.getItem('f1rb_dashboard')||'null')||{sheetUrl:'',tasks:generateSampleTasks()};
-let darkMode = localStorage.getItem('f1rb_theme') !== 'light';
+let tasks = [];
+let filters = {status:"all", person:"all"};
+let openAdd = {};
+let openDetail = {};   // taskId -> bool
 
-function saveState(){localStorage.setItem('f1rb_dashboard',JSON.stringify(state));}
-
-function toggleTheme(){
-  darkMode = !darkMode;
-  document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
-  document.getElementById('theme-btn').textContent = darkMode ? '🌙' : '☀️';
-  localStorage.setItem('f1rb_theme', darkMode ? 'dark' : 'light');
-}
-
-function applyTheme(){
-  document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
-  document.getElementById('theme-btn').textContent = darkMode ? '🌙' : '☀️';
-}
-
-function generateSampleTasks(){
-  const tasks=[];let id=1;const today=new Date();
-  const sampleNames={
-    CNN:['Media policy review','Broadcast licensing renewal','Staff KPI update','Q3 compliance audit'],
-    ISMA:['Cemetery management SOP','Insurance premium filing','Board resolution draft','Membership database update'],
-    TSKL:['Annual returns filing','Director registration','Shareholder registry update','Audit report submission'],
-    RML:['Asset valuation report','Lease renewal documentation','Maintenance schedule','Utilities reconciliation'],
-    CPL:['Contractor vetting','Project milestone review','Cost variance report','Procurement sign-off'],
-    FTL:['Fleet insurance renewal','Driver licence checks','Vehicle maintenance log','Fuel cost analysis'],
-    KSD:['Knowledge base update','Staff training schedule','Onboarding checklist','Skills gap analysis'],
-    LK:['Legal retainer renewal','Contract review queue','Compliance checklist','Litigation status update']
-  };
-  BRANCHES.forEach(b=>{
-    sampleNames[b].forEach((name,i)=>{
-      const daysOffset=[-5,3,10,25][i];
-      const due=new Date(today);due.setDate(due.getDate()+daysOffset);
-      tasks.push({id:id++,branch:b,name,assignee:PERSONS[i%2],pct:[15,40,75,100][i],due:due.toISOString().split('T')[0],status:[15,40,75,100][i]===100?'done':daysOffset<0?'overdue':daysOffset<=7?'soon':'ok'});
-    });
-  });
-  return tasks;
-}
-
-function filteredTasks(){
-  let tasks=activePerson==='all'?state.tasks:state.tasks.filter(t=>t.assignee===activePerson);
-  if(isolatedBranch) tasks=tasks.filter(t=>t.branch===isolatedBranch);
-  if(searchTerm.trim()){const q=searchTerm.toLowerCase();tasks=tasks.filter(t=>t.name.toLowerCase().includes(q)||t.branch.toLowerCase().includes(q)||t.assignee.toLowerCase().includes(q));}
-  return tasks;
-}
-
-function handleSearch(val){searchTerm=val;renderBranches();}
-function isolateBranch(b){isolatedBranch=isolatedBranch===b?null:b;render();}
-function clearIsolation(){isolatedBranch=null;render();}
-function toggleSort(key){if(sortState.key===key){sortState.dir*=-1;}else{sortState.key=key;sortState.dir=1;}renderBranches();}
-function sortTasks(tasks){
-  if(!sortState.key)return tasks;
-  const{key,dir}=sortState;
-  return[...tasks].sort((a,b)=>{
-    let av=a[key],bv=b[key];
-    if(key==='due'){av=new Date(av);bv=new Date(bv);}
-    if(key==='pct'){av=Number(av);bv=Number(bv);}
-    if(av<bv)return-1*dir;if(av>bv)return 1*dir;return 0;
-  });
-}
-function toggleExpand(id){expandedTaskId=expandedTaskId===id?null:id;renderBranches();}
-function toggleDone(id){
-  const t=state.tasks.find(x=>x.id===id);if(!t)return;
-  t.pct=t.pct===100?0:100;t.status=deriveStatus(t.pct,t.due);render();
-}
-function openTaskDetail(id){
-  const t=state.tasks.find(x=>x.id===id);if(!t)return;
-  const today=new Date();today.setHours(0,0,0,0);
-  const due=new Date(t.due+'T00:00:00');
-  const diffDays=Math.round((due-today)/86400000);
-  const statusLabel=t.pct===100?'Complete':diffDays<0?`Overdue by ${Math.abs(diffDays)} day${Math.abs(diffDays)===1?'':'s'}`:diffDays===0?'Due today':`Due in ${diffDays} day${diffDays===1?'':'s'}`;
-  const statusColor=t.pct===100?'#6C63FF':diffDays<0?'#FF5C5C':diffDays<=7?'#FFB830':'#00D4AA';
-  document.getElementById('modal-container').innerHTML=`
-    <div class="modal-bg" onclick="closeModal(event)">
-      <div class="modal" onclick="event.stopPropagation()" style="width:400px">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:4px">
-          <h3>${t.name}</h3>
-          <span class="status-check${t.pct===100?' checked':''}" onclick="toggleDone(${t.id});openTaskDetail(${t.id})" title="Toggle complete">${t.pct===100?'✓':''}</span>
-        </div>
-        <div class="modal-sub">${t.branch} · ${t.assignee}</div>
-        <div style="background:var(--bg);border-radius:var(--radius-md);padding:14px;margin-bottom:14px">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-            <span style="font-size:12px;color:var(--text-2)">Progress</span>
-            <span style="font-size:14px;font-weight:700;color:${barColor(t)}">${t.pct}%</span>
-          </div>
-          <div class="bar-wrap" style="width:100%;height:8px"><div class="bar-fill" style="width:${t.pct}%;background:${barColor(t)};height:8px"></div></div>
-        </div>
-        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:8px">
-          <span style="color:var(--text-2)">Expected completion</span><span style="font-weight:600">${formatDate(t.due)}</span>
-        </div>
-        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:20px">
-          <span style="color:var(--text-2)">Status</span><span style="color:${statusColor};font-weight:700">${statusLabel}</span>
-        </div>
-        <div class="modal-actions">
-          <button onclick="closeModal()">Close</button>
-          <button class="btn-primary" onclick="openEditModal(${t.id})">✎ Edit task</button>
-        </div>
-      </div>
-    </div>`;
-}
-
-function branchAvg(b){const t=filteredTasks().filter(t=>t.branch===b);return t.length?Math.round(t.reduce((s,t)=>s+t.pct,0)/t.length):0;}
-function avgColor(p){return p===100?'#6C63FF':p>=70?'#00D4AA':p>=40?'#FFB830':'#FF5C5C';}
-function barColor(t){return t.pct===100?'#6C63FF':t.status==='overdue'?'#FF5C5C':t.status==='soon'?'#FFB830':'#00D4AA';}
-function dueDateClass(t){return t.pct===100?'ok':t.status==='overdue'?'overdue':t.status==='soon'?'soon':'ok';}
-function formatDate(d){return new Date(d+'T00:00:00').toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});}
-
-function miniRing(pct, color){
-  const r=14,c=2*Math.PI*r,dash=pct/100*c;
-  return `<svg width="36" height="36" viewBox="0 0 36 36">
-    <circle cx="18" cy="18" r="${r}" fill="none" stroke="var(--border)" stroke-width="3"/>
-    <circle cx="18" cy="18" r="${r}" fill="none" stroke="${color}" stroke-width="3" stroke-dasharray="${dash} ${c}" stroke-linecap="round"/>
-  </svg>`;
-}
-
-function renderKPIs(){
-  const tasks=filteredTasks();
-  const overall=tasks.length?Math.round(tasks.reduce((s,t)=>s+t.pct,0)/tasks.length):0;
-  const done=tasks.filter(t=>t.pct===100).length;
-  const overdue=tasks.filter(t=>t.status==='overdue'&&t.pct<100).length;
-  const soon=tasks.filter(t=>t.status==='soon'&&t.pct<100).length;
-  document.getElementById('kpis').innerHTML=`
-    <div class="kpi"><div class="k-icon">📊</div><div class="k-label">Overall</div><div class="k-val">${overall}%</div><div class="k-sub">${tasks.length} tasks</div></div>
-    <div class="kpi"><div class="k-icon">✅</div><div class="k-label">Completed</div><div class="k-val" style="color:#00D4AA">${done}</div><div class="k-sub">of ${tasks.length}</div></div>
-    <div class="kpi"><div class="k-icon">🔴</div><div class="k-label">Overdue</div><div class="k-val" style="color:#FF5C5C">${overdue}</div><div class="k-sub">need attention</div></div>
-    <div class="kpi"><div class="k-icon">⚠️</div><div class="k-label">Due soon</div><div class="k-val" style="color:#FFB830">${soon}</div><div class="k-sub">within 7 days</div></div>
-    <div class="kpi"><div class="k-icon">🏢</div><div class="k-label">Branches</div><div class="k-val">${activeBranches().length}</div><div class="k-sub">active</div></div>
-    <div class="kpi"><div class="k-icon">👥</div><div class="k-label">Personnel</div><div class="k-val">2</div><div class="k-sub">F1 &amp; RB</div></div>
-  `;
-}
-
-function activeBranches(){
-  const fromTasks=[...new Set(state.tasks.map(t=>t.branch))];
-  return fromTasks.length?fromTasks.sort():BRANCHES;
-}
-
-function sortArrow(key){
-  if(sortState.key!==key)return'<span class="sort-arrow">↕</span>';
-  return`<span class="sort-arrow active">${sortState.dir===1?'↑':'↓'}</span>`;
-}
-
-function renderBranchFilterChip(){
-  const el=document.getElementById('branch-filter-chip');
-  if(!isolatedBranch){el.innerHTML='';return;}
-  el.innerHTML=`<div class="filter-chip">📍 ${isolatedBranch}<button onclick="clearIsolation()">✕</button></div>`;
-}
-
-function renderBranches(){
-  renderBranchFilterChip();
-  const grid=document.getElementById('branch-grid');
-  const branchesToShow=isolatedBranch?[isolatedBranch]:activeBranches();
-  grid.innerHTML=branchesToShow.map(b=>{
-    let tasks=filteredTasks().filter(t=>t.branch===b);
-    tasks=sortTasks(tasks);
-    const avg=branchAvg(b);const color=avgColor(avg);
-    const rows=tasks.map(t=>{
-      const isOpen=expandedTaskId===t.id;
-      const today=new Date();today.setHours(0,0,0,0);
-      const due=new Date(t.due+'T00:00:00');
-      const diffDays=Math.round((due-today)/86400000);
-      const statusLabel=t.pct===100?'Complete':diffDays<0?`Overdue by ${Math.abs(diffDays)}d`:diffDays===0?'Due today':`Due in ${diffDays}d`;
-      const statusColor=t.pct===100?'#6C63FF':diffDays<0?'#FF5C5C':diffDays<=7?'#FFB830':'#00D4AA';
-      return`
-      <tr class="task-row" onclick="toggleExpand(${t.id})">
-        <td>
-          <div class="task-row-name">
-            <span class="expand-chevron${isOpen?' open':''}">▸</span>
-            <span class="status-check${t.pct===100?' checked':''}" onclick="event.stopPropagation();toggleDone(${t.id})" title="Toggle complete">${t.pct===100?'✓':''}</span>
-            <span class="task-name-text" title="${t.name}">${t.name}</span>
-          </div>
-        </td>
-        <td><span class="assignee-pill">${t.assignee}</span></td>
-        <td>
-          <div style="display:flex;align-items:center;gap:6px">
-            <div class="bar-wrap" style="width:52px"><div class="bar-fill" style="width:${t.pct}%;background:${barColor(t)}"></div></div>
-            <span class="pct-label" style="color:${barColor(t)}">${t.pct}%</span>
-          </div>
-        </td>
-        <td><span class="due ${dueDateClass(t)}">${formatDate(t.due)}</span></td>
-        <td><button onclick="event.stopPropagation();openEditModal(${t.id})" style="background:none;border:none;cursor:pointer;padding:3px 5px;color:var(--text-3);font-size:14px;border-radius:var(--radius-sm);transition:var(--transition)" onmouseover="this.style.background='var(--border-light)'" onmouseout="this.style.background='none'">✎</button></td>
-      </tr>
-      ${isOpen?`
-      <tr class="expand-row">
-        <td colspan="5">
-          <div class="expand-panel">
-            <div class="expand-grid">
-              <div><span class="expand-label">Branch</span><span class="expand-val">${t.branch}</span></div>
-              <div><span class="expand-label">Assignee</span><span class="expand-val">${t.assignee}</span></div>
-              <div><span class="expand-label">Expected completion</span><span class="expand-val">${formatDate(t.due)}</span></div>
-              <div><span class="expand-label">Status</span><span class="expand-val" style="color:${statusColor}">${statusLabel}</span></div>
-            </div>
-            <div class="bar-wrap" style="width:100%;height:7px"><div class="bar-fill" style="width:${t.pct}%;background:${barColor(t)};height:7px"></div></div>
-            <div class="expand-actions">
-              <button class="expand-btn" onclick="event.stopPropagation();openEditModal(${t.id})">✎ Edit task</button>
-            </div>
-          </div>
-        </td>
-      </tr>`:''}`;
-    }).join('');
-    return`
-    <div class="branch-card">
-      <div class="branch-header">
-        <div class="branch-tag">
-          <div class="branch-badge">${b.slice(0,2)}</div>
-          <div>
-            <div class="branch-name" onclick="isolateBranch('${b}')" title="Click to focus">${b}</div>
-            <div class="branch-meta">${tasks.length} task${tasks.length!==1?'s':''}</div>
-          </div>
-        </div>
-        <div class="branch-right">
-          <span class="avg-badge" style="color:${color}">${avg}%</span>
-          <div class="mini-ring">${miniRing(avg,color)}<div class="mini-ring-val" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:${color}"></div></div>
-        </div>
-      </div>
-      <table class="task-table">
-        <thead><tr>
-          <th class="sortable" onclick="toggleSort('name')">Task ${sortArrow('name')}</th>
-          <th class="sortable" onclick="toggleSort('assignee')">Who ${sortArrow('assignee')}</th>
-          <th class="sortable" onclick="toggleSort('pct')">Progress ${sortArrow('pct')}</th>
-          <th class="sortable" onclick="toggleSort('due')">Due ${sortArrow('due')}</th>
-          <th></th>
-        </tr></thead>
-        <tbody>${rows||`<tr><td colspan="5" class="no-results">${searchTerm?'No matching tasks':'No tasks yet'}</td></tr>`}</tbody>
-      </table>
-    </div>`;
-  }).join('');
-}
-
-function activePersons(){
-  const fromTasks=[...new Set(state.tasks.map(t=>t.assignee))];
-  return fromTasks.length?fromTasks.sort():PERSONS;
-}
-
-function renderPersonTabs(){
-  const container=document.getElementById('person-tabs');
-  const people=activePersons();
-  container.innerHTML=`<button class="tab${activePerson==='all'?' active':''}" onclick="switchPerson('all',this)">All</button>`+
-    people.map(p=>`<button class="tab${activePerson===p?' active':''}" onclick="switchPerson('${p}',this)">${p}</button>`).join('');
-}
-
-function render(){renderKPIs();renderPersonTabs();renderBranches();saveState();}
-function switchPerson(p,btn){activePerson=p;document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));btn.classList.add('active');render();}
-
-function openEditModal(id){
-  const t=state.tasks.find(x=>x.id===id);if(!t)return;
-  document.getElementById('modal-container').innerHTML=`
-    <div class="modal-bg" onclick="closeModal(event)">
-      <div class="modal" onclick="event.stopPropagation()">
-        <h3>✎ Edit task</h3>
-        <div class="modal-sub">${t.branch} · ${t.assignee}</div>
-        <label>Task name</label><input type="text" id="m-name" value="${t.name}" />
-        <label>Assignee</label><select id="m-assignee"><option${t.assignee==='F1'?' selected':''}>F1</option><option${t.assignee==='RB'?' selected':''}>RB</option></select>
-        <label>% Complete (0–100)</label><input type="number" id="m-pct" min="0" max="100" value="${t.pct}" />
-        <label>Expected completion date</label><input type="date" id="m-due" value="${t.due}" />
-        <div class="modal-actions">
-          <button class="btn-danger" onclick="deleteTask(${id})">🗑 Delete</button>
-          <button class="btn-primary" onclick="saveTask(${id})">Save changes</button>
-        </div>
-      </div>
-    </div>`;
-}
-
-function closeModal(e){if(e&&e.target!==document.querySelector('.modal-bg'))return;document.getElementById('modal-container').innerHTML='';}
-function deriveStatus(pct,due){if(pct===100)return'done';const today=new Date();today.setHours(0,0,0,0);const d=new Date(due+'T00:00:00');const diff=Math.round((d-today)/86400000);return diff<0?'overdue':diff<=7?'soon':'ok';}
-
-function saveTask(id){
-  const t=state.tasks.find(x=>x.id===id);if(!t)return;
-  t.name=document.getElementById('m-name').value.trim()||t.name;
-  t.assignee=document.getElementById('m-assignee').value;
-  t.pct=Math.min(100,Math.max(0,parseInt(document.getElementById('m-pct').value)||0));
-  t.due=document.getElementById('m-due').value||t.due;
-  t.status=deriveStatus(t.pct,t.due);
-  document.getElementById('modal-container').innerHTML='';render();
-}
-
-function deleteTask(id){
-  if(!confirm('Delete this task?'))return;
-  state.tasks=state.tasks.filter(t=>t.id!==id);
-  document.getElementById('modal-container').innerHTML='';render();
-}
-
-function connectSheet(){
-  const url=document.getElementById('sheet-url').value.trim();
-  if(!url){alert('Paste your Apps Script /exec URL.');return;}
-  state.sheetUrl=url;saveState();syncFromSheet();
-}
-
-async function syncFromSheet(){
-  if(!state.sheetUrl){document.getElementById('last-sync').textContent='No sheet connected';return;}
-  const btn=document.getElementById('sync-btn');
-  btn.classList.add('spinning');
-  document.getElementById('last-sync').textContent='Syncing…';
-  const url=state.sheetUrl+(state.sheetUrl.includes('?')?'&':'?')+'cachebust='+Date.now();
-  try{
-    const res=await fetch(url);
-    if(!res.ok){document.getElementById('last-sync').textContent=`Sync failed — HTTP ${res.status}`;btn.classList.remove('spinning');return;}
-    const json=await res.json();
-    if(!Array.isArray(json)||json.length===0){document.getElementById('last-sync').textContent='Sync failed — sheet returned no rows';btn.classList.remove('spinning');return;}
-    const findKey=(row,candidates)=>{const keys=Object.keys(row);for(const want of candidates){const hit=keys.find(k=>k.toLowerCase().trim()===want);if(hit)return hit;}return null;};
-    const sample=json[0];
-    const taskKey=findKey(sample,['task','task name','description']);
-    const branchKey=findKey(sample,['branch','category']);
-    const personKey=findKey(sample,['assignee','person','owner']);
-    const dueKey=findKey(sample,['due','completion date','due date','expected completion']);
-    const pctKey=findKey(sample,['pct','%','percent','completion %','% complete']);
-    if(!taskKey||!branchKey){document.getElementById('last-sync').textContent='Sync failed — check columns (need task/category)';btn.classList.remove('spinning');return;}
-    state.tasks=json.filter(row=>row[taskKey]).map((row,i)=>{
-      const rawDue=dueKey?row[dueKey]:'';
-      let due='';
-      if(rawDue){const d=new Date(rawDue);due=isNaN(d)?'':d.toISOString().split('T')[0];}
-      let pct;
-      if(pctKey&&row[pctKey]!==''&&row[pctKey]!=null){pct=Math.min(100,Math.max(0,parseInt(row[pctKey])||0));}
-      else{pct=due?100:0;}
-      return{id:i+1,name:row[taskKey]||'Unnamed',branch:row[branchKey]||'CNN',assignee:personKey?(row[personKey]||'F1'):'F1',pct,due:due||new Date().toISOString().split('T')[0],status:deriveStatus(pct,due||new Date().toISOString().split('T')[0])};
-    });
-    document.getElementById('last-sync').textContent=`✓ Synced ${new Date().toLocaleTimeString()}`;
-    saveState();render();
-  }catch(e){
-    document.getElementById('last-sync').textContent='Sync failed — check script deployment';
+/* ─── DATA ─── */
+async function syncData() {
+  load(true); syncState("spin","Syncing…");
+  try {
+    const r = await fetch(SCRIPT + "?t=" + Date.now());
+    const j = await r.json();
+    const rows = j.data || j;
+    tasks = rows.map(r => ({
+      rowIndex:   r.rowIndex,
+      branch:     (r.category || r[0] || "").toString().trim().toUpperCase(),
+      person:     (r.person   || r[1] || "").toString().trim(),
+      name:       (r.task     || r[2] || "").toString().trim(),
+      targetDate: (r.targetDate||r[3]|| "").toString().trim(),
+      completed:  String(r.completed||r[4]||"").toLowerCase() === "true",
+      notes:      (r.notes    || r[5] || "").toString().trim(),
+    })).filter(t => t.name);
+    syncState("ok","Synced " + new Date().toLocaleTimeString());
+    toast("Sheet synced ✓","ok");
+  } catch(e) {
+    syncState("err","Sync failed — showing demo");
+    toast("Could not reach Google Sheets","err");
+    loadDemo();
   }
-  btn.classList.remove('spinning');
+  renderAll(); load(false);
 }
 
-// Init
-applyTheme();
-if(state.sheetUrl)document.getElementById('sheet-url').value=state.sheetUrl;
-render();
+async function postAction(payload) {
+  try {
+    const r = await fetch(SCRIPT, {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify(payload),
+      mode:"no-cors"   // Apps Script with no-cors still executes; we just can't read the response
+    });
+    return true;
+  } catch(e) { return false; }
+}
+
+async function toggleTask(rowIndex, taskId) {
+  const t = tasks.find(x=>x.rowIndex===rowIndex);
+  if(!t) return;
+  t.completed = !t.completed;
+  renderAll();
+  toast(t.completed ? "Marked complete ✓" : "Marked in progress","ok");
+  const ok = await postAction({action:"toggle", rowIndex});
+  if(!ok) toast("Saved locally — sheet update may be delayed","err");
+}
+
+async function deleteTask(rowIndex) {
+  if(!confirm("Delete this task from the sheet?")) return;
+  tasks = tasks.filter(t=>t.rowIndex!==rowIndex);
+  renderAll();
+  toast("Task deleted","ok");
+  await postAction({action:"delete", rowIndex});
+}
+
+async function addTask(branch) {
+  const name  = val("af-name-"+branch);
+  const person= val("af-person-"+branch);
+  const date  = val("af-date-"+branch);
+  const notes = val("af-notes-"+branch);
+  if(!name) { toast("Enter a task name","err"); return; }
+  const tmp = {rowIndex: Date.now(), branch, person, name, targetDate:date, completed:false, notes};
+  tasks.push(tmp);
+  openAdd[branch] = false;
+  renderAll();
+  toast("Task added to "+branch+" ✓","ok");
+  const ok = await postAction({action:"add", category:branch, person, task:name, targetDate:date, notes});
+  if(ok) setTimeout(syncData, 1500);  // re-sync to get real rowIndex from sheet
+}
+
+function loadDemo() {
+  tasks = [
+    {rowIndex:2,branch:"CNN",person:"F1",name:"Quarterly review draft",targetDate:"2025-07-30",completed:false,notes:"Awaiting inputs from department heads"},
+    {rowIndex:3,branch:"CNN",person:"RB",name:"Staff appraisals Q2",targetDate:"2025-07-10",completed:true,notes:""},
+    {rowIndex:4,branch:"ISMA",person:"F1",name:"Policy framework update",targetDate:"2025-08-05",completed:false,notes:"Legal review pending"},
+    {rowIndex:5,branch:"ISMA",person:"RB",name:"Compliance audit prep",targetDate:"2025-07-08",completed:false,notes:"Documents due by end of week"},
+    {rowIndex:6,branch:"TSKL",person:"F1",name:"Budget submissions",targetDate:"2025-07-20",completed:true,notes:""},
+    {rowIndex:7,branch:"RML",person:"RB",name:"Training calendar 2025",targetDate:"2025-08-15",completed:false,notes:"Confirm venue booking"},
+    {rowIndex:8,branch:"CPL",person:"F1",name:"KPI tracking review",targetDate:"2025-07-25",completed:false,notes:""},
+    {rowIndex:9,branch:"KSD",person:"RB",name:"Headcount reconciliation",targetDate:"2025-07-28",completed:false,notes:"Cross-check with finance"},
+    {rowIndex:10,branch:"LK",person:"F1",name:"Onboarding checklist update",targetDate:"2025-08-01",completed:true,notes:""},
+  ];
+}
+
+/* ─── RENDER ─── */
+function renderAll() {
+  updateKPIs();
+  const grid = document.getElementById("grid");
+  grid.innerHTML = "";
+  const vis = filtered();
+  const today = new Date(); today.setHours(0,0,0,0);
+  const soon  = new Date(today); soon.setDate(soon.getDate()+7);
+
+  BRANCHES.forEach(branch => {
+    const brAll = tasks.filter(t=>t.branch===branch);
+    const brVis = vis.filter(t=>t.branch===branch);
+    if(!brVis.length && (filters.status!=="all"||filters.person!=="all"||document.getElementById("si").value)) return;
+
+    const done = brAll.filter(t=>t.completed).length;
+    const total= brAll.length;
+    const pct  = total ? Math.round(done/total*100) : 0;
+    const col  = COLORS[branch]||"#6C63FF";
+
+    const rowsHtml = !brVis.length
+      ? `<tr><td colspan="4"><div class="empty">No tasks match current filters</div></td></tr>`
+      : brVis.map(t => {
+          const d = t.targetDate ? new Date(t.targetDate) : null;
+          const over = d&&!t.completed&&d<today;
+          const near = d&&!t.completed&&d>=today&&d<=soon;
+          const cls  = t.completed?"completed":over?"overdue":near?"soon":"";
+          const ds   = d ? d.toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"2-digit"}) : "No date";
+          const detailOpen = openDetail[t.rowIndex];
+          return `
+          <tr class="trow ${cls}" onclick="toggleDetail(${t.rowIndex})">
+            <td style="width:28px;padding-right:0" onclick="event.stopPropagation()">
+              <button class="cbtn ${t.completed?"done":""}" onclick="toggleTask(${t.rowIndex},${t.rowIndex})" title="Toggle complete">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#3fb950" stroke-width="3.5"><polyline points="20 6 9 17 4 12"/></svg>
+              </button>
+            </td>
+            <td><div class="tname">${esc(t.name)}</div></td>
+            <td style="text-align:center"><span class="pbadge ${esc(t.person)}">${esc(t.person)||"—"}</span></td>
+            <td style="text-align:right"><span class="tdate">${ds}</span></td>
+          </tr>
+          <tr class="detail-row">
+            <td colspan="4">
+              <div class="detail-panel ${detailOpen?"open":""}">
+                <div class="detail-inner">
+                  <div class="detail-field">
+                    <span class="detail-label">Assigned to</span>
+                    <span class="detail-value">${esc(t.person)||"—"}</span>
+                  </div>
+                  <div class="detail-field">
+                    <span class="detail-label">Target date</span>
+                    <span class="detail-value">${ds}</span>
+                  </div>
+                  <div class="detail-field">
+                    <span class="detail-label">Status</span>
+                    <span class="detail-value" style="color:${t.completed?"var(--success)":over?"var(--danger)":near?"var(--warn)":"var(--muted)"}">
+                      ${t.completed?"Completed":over?"Overdue":near?"Due soon":"In progress"}
+                    </span>
+                  </div>
+                  <div class="detail-field">
+                    <span class="detail-label">Branch</span>
+                    <span class="detail-value">${esc(branch)}</span>
+                  </div>
+                  ${t.notes ? `<div class="detail-field" style="grid-column:1/-1">
+                    <span class="detail-label">Notes</span>
+                    <span class="detail-value note">${esc(t.notes)}</span>
+                  </div>` : ""}
+                  <div class="detail-actions" style="grid-column:1/-1">
+                    <button class="del-btn" onclick="event.stopPropagation();deleteTask(${t.rowIndex})">Delete task</button>
+                  </div>
+                </div>
+              </div>
+            </td>
+          </tr>`;
+        }).join("");
+
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `
+      <div class="card-head">
+        <div class="bname">
+          <div class="bicon" style="background:${col}22;color:${col}">${branch}</div>
+          ${branch}
+          <span class="btask-count">${total} task${total!==1?"s":""}</span>
+        </div>
+        <div class="ring-w">${ring(pct,col)}<div class="ring-lbl">${pct}%</div></div>
+      </div>
+      <div class="prog-track"><div class="prog-fill" style="width:${pct}%"></div></div>
+      <div class="tasks-scroll">
+        <table>
+          <thead><tr>
+            <th style="width:28px"></th>
+            <th>Task</th>
+            <th style="text-align:center">Person</th>
+            <th style="text-align:right">Target</th>
+          </tr></thead>
+          <tbody>${rowsHtml}</tbody>
+        </table>
+      </div>
+      ${openAdd[branch] ? addFormHtml(branch) : `
+      <button class="add-toggle" onclick="openAdd['${branch}']=true;renderAll()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add task
+      </button>`}
+    `;
+    grid.appendChild(card);
+  });
+}
+
+function addFormHtml(b) {
+  return `<div class="add-form-wrap">
+    <div class="af-grid">
+      <input class="af-input" id="af-name-${b}" placeholder="Task name…">
+      <select class="af-select" id="af-person-${b}"><option value="F1">F1</option><option value="RB">RB</option><option value="Both">Both</option></select>
+      <input type="date" class="af-input" id="af-date-${b}">
+    </div>
+    <div class="af-grid2">
+      <input class="af-input" id="af-notes-${b}" placeholder="Notes (optional)…">
+    </div>
+    <div class="af-btns">
+      <button class="af-submit" onclick="addTask('${b}')">Add task</button>
+      <button class="af-cancel" onclick="openAdd['${b}']=false;renderAll()">Cancel</button>
+    </div>
+  </div>`;
+}
+
+function toggleDetail(rowIndex) {
+  openDetail[rowIndex] = !openDetail[rowIndex];
+  renderAll();
+}
+
+function ring(pct, col) {
+  const r=14,c=19,ci=2*Math.PI*r,f=ci*pct/100;
+  return `<svg viewBox="0 0 38 38"><circle cx="${c}" cy="${c}" r="${r}" fill="none" stroke="var(--border)" stroke-width="3.5"/>
+  <circle cx="${c}" cy="${c}" r="${r}" fill="none" stroke="${col}" stroke-width="3.5" stroke-dasharray="${f} ${ci}" stroke-dashoffset="${ci*.25}" stroke-linecap="round"/></svg>`;
+}
+
+function updateKPIs() {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const total   = tasks.length;
+  const done    = tasks.filter(t=>t.completed).length;
+  const pending = tasks.filter(t=>!t.completed).length;
+  const overdue = tasks.filter(t=>!t.completed&&t.targetDate&&new Date(t.targetDate)<today).length;
+  const pct     = total ? Math.round(done/total*100) : 0;
+  document.getElementById("kTotal").textContent   = total;
+  document.getElementById("kDone").textContent    = done;
+  document.getElementById("kPending").textContent = pending;
+  document.getElementById("kOverdue").textContent = overdue;
+  document.getElementById("kOverall").textContent = pct + "%";
+}
+
+function filtered() {
+  const q = document.getElementById("si").value.toLowerCase();
+  const today = new Date(); today.setHours(0,0,0,0);
+  const soon  = new Date(today); soon.setDate(soon.getDate()+7);
+  return tasks.filter(t => {
+    if(filters.person!=="all"&&t.person!==filters.person) return false;
+    if(q&&!t.name.toLowerCase().includes(q)&&!t.branch.toLowerCase().includes(q)) return false;
+    if(filters.status==="done"&&!t.completed) return false;
+    if(filters.status==="pending"&&t.completed) return false;
+    if(filters.status==="overdue"){
+      if(t.completed||!t.targetDate||new Date(t.targetDate)>=today) return false;
+    }
+    return true;
+  });
+}
+
+function setFilter(type, val, el) {
+  filters[type] = val;
+  const group = type==="status"?"schips":"pchips";
+  document.querySelectorAll("#"+group+" .chip").forEach(c=>c.classList.remove("active"));
+  el.classList.add("active");
+  renderAll();
+}
+
+function exportCSV() {
+  const rows=[["Branch","Person","Task","Target Date","Completed","Notes"]];
+  tasks.forEach(t=>rows.push([t.branch,t.person,t.name,t.targetDate,t.completed?"Yes":"No",t.notes]));
+  const csv=rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(",")).join("\n");
+  const a=document.createElement("a");
+  a.href="data:text/csv;charset=utf-8,"+encodeURIComponent(csv);
+  a.download="f1-rb-tasks.csv"; a.click();
+  toast("CSV exported","ok");
+}
+
+function val(id){ const e=document.getElementById(id); return e?e.value.trim():""; }
+function esc(s){ const d=document.createElement("div");d.textContent=s;return d.innerHTML; }
+function load(on){ document.getElementById("lbar").classList.toggle("on",on); }
+function syncState(cls,lbl){
+  document.getElementById("sdot").className="sdot "+cls;
+  document.getElementById("slabel").textContent=lbl;
+}
+function toast(msg,type=""){
+  const el=document.getElementById("toast");
+  el.textContent=msg; el.className="toast show "+(type||"");
+  clearTimeout(el._t); el._t=setTimeout(()=>el.className="toast",2800);
+}
+
+syncData();
 </script>
 </body>
 </html>
