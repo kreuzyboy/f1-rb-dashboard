@@ -66,8 +66,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .bicon{width:27px;height:27px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;font-family:var(--mono);flex-shrink:0;}
 .btask-count{font-size:11px;color:var(--muted);font-weight:400;}
 .ring-w{position:relative;width:38px;height:38px;flex-shrink:0;}
-.ring-w svg{width:38px;height:38px;}
-.ring-lbl{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;font-family:var(--mono);color:var(--text);}
+.branch-ring{position:absolute;inset:0;}
+.branch-ring svg{width:38px;height:38px;}
+.ring-lbl{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;font-family:var(--mono);color:var(--text);pointer-events:none;}
 .prog-track{height:3px;background:var(--border);}
 .prog-fill{height:3px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .4s;}
 
@@ -259,11 +260,53 @@ async function postAction(payload) {
   } catch(e) { return false; }
 }
 
-async function toggleTask(rowIndex, taskId) {
+async function toggleTask(rowIndex) {
   const t = tasks.find(x=>x.rowIndex===rowIndex);
   if(!t) return;
   t.completed = !t.completed;
-  renderAll();
+
+  // Auto-close detail panel when marking complete
+  if(t.completed) openDetail[rowIndex] = false;
+
+  // Surgical DOM update — update only the affected row elements, no full re-render
+  const cbtn = document.querySelector(`.cbtn[data-id="${rowIndex}"]`);
+  const trow = document.querySelector(`.trow[data-id="${rowIndex}"]`);
+  const detailPanel = document.querySelector(`.detail-panel[data-id="${rowIndex}"]`);
+  const delBtn = document.querySelector(`.del-btn[data-id="${rowIndex}"]`);
+  const statusSpan = document.querySelector(`.status-val[data-id="${rowIndex}"]`);
+
+  if(cbtn) { cbtn.classList.toggle("done", t.completed); }
+  if(trow) {
+    trow.classList.toggle("completed", t.completed);
+    trow.classList.remove("overdue","soon");
+    if(!t.completed && t.targetDate) {
+      const today = new Date(); today.setHours(0,0,0,0);
+      const soon = new Date(today); soon.setDate(soon.getDate()+7);
+      const d = new Date(t.targetDate);
+      if(d < today) trow.classList.add("overdue");
+      else if(d <= soon) trow.classList.add("soon");
+    }
+  }
+  if(detailPanel) {
+    detailPanel.classList.remove("open");
+  }
+  if(delBtn) {
+    delBtn.style.display = t.completed ? "none" : "";
+  }
+  if(statusSpan) {
+    const today = new Date(); today.setHours(0,0,0,0);
+    const soon = new Date(today); soon.setDate(soon.getDate()+7);
+    const d = t.targetDate ? new Date(t.targetDate) : null;
+    const over = d&&!t.completed&&d<today;
+    const near = d&&!t.completed&&d>=today&&d<=soon;
+    statusSpan.textContent = t.completed?"Completed":over?"Overdue":near?"Due soon":"In progress";
+    statusSpan.style.color = t.completed?"var(--success)":over?"var(--danger)":near?"var(--warn)":"var(--muted)";
+  }
+
+  // Update KPIs and branch ring/bar without touching the task rows
+  updateKPIs();
+  updateBranchStats(t.branch);
+
   toast(t.completed ? "Marked complete ✓" : "Marked in progress","ok");
   const ok = await postAction({action:"toggle", rowIndex});
   if(!ok) toast("Saved locally — sheet update may be delayed","err");
@@ -335,9 +378,9 @@ function renderAll() {
           const ds   = d ? d.toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"2-digit"}) : "No date";
           const detailOpen = openDetail[t.rowIndex];
           return `
-          <tr class="trow ${cls}" onclick="toggleDetail(${t.rowIndex})">
+          <tr class="trow ${cls}" data-id="${t.rowIndex}" onclick="toggleDetail(${t.rowIndex})">
             <td style="width:28px;padding-right:0" onclick="event.stopPropagation()">
-              <button class="cbtn ${t.completed?"done":""}" onclick="toggleTask(${t.rowIndex},${t.rowIndex})" title="Toggle complete">
+              <button class="cbtn ${t.completed?"done":""}" data-id="${t.rowIndex}" onclick="toggleTask(${t.rowIndex})" title="Toggle complete">
                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#3fb950" stroke-width="3.5"><polyline points="20 6 9 17 4 12"/></svg>
               </button>
             </td>
@@ -347,7 +390,7 @@ function renderAll() {
           </tr>
           <tr class="detail-row">
             <td colspan="4">
-              <div class="detail-panel ${detailOpen?"open":""}">
+              <div class="detail-panel ${detailOpen?"open":""}" data-id="${t.rowIndex}">
                 <div class="detail-inner">
                   <div class="detail-field">
                     <span class="detail-label">Assigned to</span>
@@ -359,7 +402,7 @@ function renderAll() {
                   </div>
                   <div class="detail-field">
                     <span class="detail-label">Status</span>
-                    <span class="detail-value" style="color:${t.completed?"var(--success)":over?"var(--danger)":near?"var(--warn)":"var(--muted)"}">
+                    <span class="detail-value status-val" data-id="${t.rowIndex}" style="color:${t.completed?"var(--success)":over?"var(--danger)":near?"var(--warn)":"var(--muted)"}">
                       ${t.completed?"Completed":over?"Overdue":near?"Due soon":"In progress"}
                     </span>
                   </div>
@@ -372,7 +415,7 @@ function renderAll() {
                     <span class="detail-value note">${esc(t.notes)}</span>
                   </div>` : ""}
                   <div class="detail-actions" style="grid-column:1/-1">
-                    <button class="del-btn" onclick="event.stopPropagation();deleteTask(${t.rowIndex})">Delete task</button>
+                    <button class="del-btn" data-id="${t.rowIndex}" style="display:${t.completed?"none":""}" onclick="event.stopPropagation();deleteTask(${t.rowIndex})">Delete task</button>
                   </div>
                 </div>
               </div>
@@ -389,9 +432,9 @@ function renderAll() {
           ${branch}
           <span class="btask-count">${total} task${total!==1?"s":""}</span>
         </div>
-        <div class="ring-w">${ring(pct,col)}<div class="ring-lbl">${pct}%</div></div>
+        <div class="ring-w"><div class="branch-ring" data-branch="${branch}">${ring(pct,col)}</div><div class="ring-lbl" data-branch="${branch}">${pct}%</div></div>
       </div>
-      <div class="prog-track"><div class="prog-fill" style="width:${pct}%"></div></div>
+      <div class="prog-track"><div class="prog-fill" data-branch="${branch}" style="width:${pct}%"></div></div>
       <div class="tasks-scroll">
         <table>
           <thead><tr>
@@ -431,8 +474,30 @@ function addFormHtml(b) {
 }
 
 function toggleDetail(rowIndex) {
+  Object.keys(openDetail).forEach(id => {
+    if(parseInt(id) !== rowIndex && openDetail[id]) {
+      openDetail[id] = false;
+      const p = document.querySelector(`.detail-panel[data-id="${id}"]`);
+      if(p) p.classList.remove("open");
+    }
+  });
   openDetail[rowIndex] = !openDetail[rowIndex];
-  renderAll();
+  const panel = document.querySelector(`.detail-panel[data-id="${rowIndex}"]`);
+  if(panel) panel.classList.toggle("open", openDetail[rowIndex]);
+}
+
+function updateBranchStats(branch) {
+  const brAll = tasks.filter(t=>t.branch===branch);
+  const done  = brAll.filter(t=>t.completed).length;
+  const total = brAll.length;
+  const pct   = total ? Math.round(done/total*100) : 0;
+  const col   = COLORS[branch]||"#6C63FF";
+  const ringEl = document.querySelector(`.branch-ring[data-branch="${branch}"]`);
+  const fillEl = document.querySelector(`.prog-fill[data-branch="${branch}"]`);
+  const lblEl  = document.querySelector(`.ring-lbl[data-branch="${branch}"]`);
+  if(ringEl) ringEl.innerHTML = ring(pct, col);
+  if(fillEl) fillEl.style.width = pct + "%";
+  if(lblEl)  lblEl.textContent = pct + "%";
 }
 
 function ring(pct, col) {
