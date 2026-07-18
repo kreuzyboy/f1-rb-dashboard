@@ -1,1 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>F1 & RB — Tasks & Objectives</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap');
+:root{
+  --bg:#0d1117;--surface:#161b22;--surface2:#1c2230;--surface3:#1f2937;
+  --border:#30363d;--border2:#3d4451;
+  --accent:#6C63FF;--accent2:#00D4AA;
+  --adim:rgba(108,99,255,0.13);--a2dim:rgba(0,212,170,0.13);
+  --text:#e6edf3;--muted:#8b949e;--muted2:#6e7681;
+  --danger:#f85149;--warn:#d29922;--success:#3fb950;
+  --font:'Inter',system-ui,sans-serif;--mono:'DM Mono',monospace;
+  --r:10px;--rs:6px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.5;}
 
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:13px 26px;border-bottom:1px solid var(--border);background:var(--surface);position:sticky;top:0;z-index:60;gap:10px;flex-wrap:wrap;}
+.logo{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+.app-title{font-size:15px;font-weight:600;white-space:nowrap;}
+.tag{font-size:11px;color:var(--muted);background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:2px 9px;white-space:nowrap;}
+.topbar-r{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.sync-row{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--muted);}
+.sdot{width:7px;height:7px;border-radius:50%;background:var(--muted2);}
+.sdot.ok{background:var(--success)}.sdot.err{background:var(--danger)}.sdot.spin{background:var(--warn);animation:blink 1s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:var(--rs);font-size:12px;font-family:var(--font);font-weight:500;cursor:pointer;border:1px solid var(--border2);background:var(--surface2);color:var(--text);transition:background .15s;white-space:nowrap;}
+.btn:hover{background:var(--border);}
+.btn.ghost{background:transparent;border-color:transparent;color:var(--muted);}
+.btn.ghost:hover{background:var(--surface2);color:var(--text);}
+
+.kpi-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:1px;background:var(--border);border-bottom:1px solid var(--border);}
+.kpi{background:var(--surface);padding:13px 18px;}
+.kpi-v{font-size:22px;font-weight:600;font-family:var(--mono);}
+.kpi-v.a{color:var(--accent)}.kpi-v.g{color:var(--success)}.kpi-v.w{color:var(--warn)}.kpi-v.d{color:var(--danger)}
+.kpi-l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:2px;}
+
+.fbar{display:flex;align-items:center;gap:8px;padding:10px 26px;border-bottom:1px solid var(--border);flex-wrap:wrap;}
+.search-w{position:relative;flex:1;min-width:160px;max-width:280px;}
+.search-w svg{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--muted2);pointer-events:none;}
+.si{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);color:var(--text);font-family:var(--font);font-size:13px;padding:7px 10px 7px 30px;outline:none;transition:border-color .15s;}
+.si:focus{border-color:var(--accent);}
+.si::placeholder{color:var(--muted2);}
+.chips{display:flex;gap:5px;flex-wrap:wrap;}
+.chip{padding:4px 11px;border-radius:20px;border:1px solid var(--border);background:var(--surface);color:var(--muted);font-size:12px;cursor:pointer;transition:all .15s;white-space:nowrap;user-select:none;}
+.chip:hover{border-color:var(--border2);color:var(--text);}
+.chip.active{background:var(--adim);border-color:var(--accent);color:var(--accent);}
+.chip.f1.active{background:var(--a2dim);border-color:var(--accent2);color:var(--accent2);}
+
+.grid{padding:20px 26px;display:grid;grid-template-columns:repeat(auto-fill,minmax(400px,1fr));gap:14px;}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;transition:border-color .15s;}
+.card:hover{border-color:var(--border2);}
+.card-head{display:flex;align-items:center;justify-content:space-between;padding:12px 15px 9px;border-bottom:1px solid var(--border);}
+.bname{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;}
+.bicon{width:27px;height:27px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;font-family:var(--mono);flex-shrink:0;}
+.btask-count{font-size:11px;color:var(--muted);font-weight:400;}
+.ring-w{position:relative;width:38px;height:38px;flex-shrink:0;}
+.ring-w svg{width:38px;height:38px;position:absolute;inset:0;}
+.ring-lbl{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;font-family:var(--mono);color:var(--text);}
+.prog-track{height:3px;background:var(--border);}
+.prog-fill{height:3px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .4s;}
+
+.tasks-scroll{max-height:300px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border2) transparent;}
+.tasks-scroll::-webkit-scrollbar{width:4px;}
+.tasks-scroll::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px;}
+table{width:100%;border-collapse:collapse;}
+th{font-size:10px;font-weight:600;color:var(--muted2);text-transform:uppercase;letter-spacing:.5px;padding:7px 13px 5px;text-align:left;border-bottom:1px solid var(--border);}
+
+.trow{border-bottom:1px solid var(--border);cursor:pointer;transition:background .12s;}
+.trow:hover{background:var(--surface3);}
+.trow.done-row td:not(:first-child){opacity:.45;}
+.trow.done-row .tname{text-decoration:line-through;color:var(--muted);}
+.trow.overdue .tdate{color:var(--danger);}
+.trow.soon .tdate{color:var(--warn);}
+.trow td{padding:8px 13px;vertical-align:middle;}
+
+.detail-row td{padding:0;background:var(--surface2);}
+.detail-panel{overflow:hidden;max-height:0;transition:max-height .25s ease;}
+.detail-panel.open{max-height:220px;}
+.detail-inner{padding:10px 13px 12px 52px;display:grid;grid-template-columns:1fr 1fr;gap:8px 20px;}
+.detail-field{display:flex;flex-direction:column;gap:2px;}
+.detail-label{font-size:10px;color:var(--muted2);text-transform:uppercase;letter-spacing:.4px;}
+.detail-value{font-size:12px;color:var(--text);}
+.detail-value.note{color:var(--muted);font-style:italic;}
+.del-btn{font-size:11px;color:var(--danger);background:none;border:1px solid rgba(248,81,73,.3);border-radius:4px;padding:3px 8px;cursor:pointer;margin-top:6px;}
+.del-btn:hover{background:rgba(248,81,73,.1);}
+
+.tname{font-size:13px;color:var(--text);font-weight:500;}
+.tdate{font-size:11px;font-family:var(--mono);color:var(--muted);white-space:nowrap;}
+.pbadge{display:inline-block;font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;white-space:nowrap;}
+.pbadge.F1{background:var(--a2dim);color:var(--accent2);}
+.pbadge.RB{background:var(--adim);color:var(--accent);}
+.pbadge.Both{background:rgba(200,200,200,.09);color:var(--muted);}
+
+/* checkbox button */
+.cbtn{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--border2);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:border-color .15s,background .15s;flex-shrink:0;padding:0;}
+.cbtn:hover{border-color:var(--accent2);background:var(--a2dim);}
+.cbtn.done{border-color:var(--success);background:rgba(63,185,80,.18);}
+.cbtn .tick{display:none;}
+.cbtn.done .tick{display:block;}
+
+.add-toggle{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--muted);background:none;border:none;cursor:pointer;padding:8px 13px;width:100%;text-align:left;transition:color .15s;border-top:1px solid var(--border);}
+.add-toggle:hover{color:var(--accent);}
+.add-form-wrap{border-top:1px solid var(--border);background:var(--surface2);padding:10px 13px 12px;}
+.af-grid{display:grid;grid-template-columns:1fr 80px 80px;gap:7px;margin-bottom:7px;}
+.af-input,.af-select{background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);color:var(--text);font-family:var(--font);font-size:12px;padding:5px 8px;outline:none;width:100%;transition:border-color .15s;}
+.af-input:focus,.af-select:focus{border-color:var(--accent);}
+.af-input::placeholder{color:var(--muted2);}
+.af-select option{background:var(--surface2);}
+.af-btns{display:flex;gap:6px;margin-top:7px;}
+.af-submit{background:var(--accent);border:none;border-radius:var(--rs);color:#fff;font-family:var(--font);font-size:12px;font-weight:500;padding:5px 12px;cursor:pointer;}
+.af-submit:hover{background:#5a53e6;}
+.af-cancel{background:transparent;border:1px solid var(--border2);border-radius:var(--rs);color:var(--muted);font-family:var(--font);font-size:12px;padding:5px 10px;cursor:pointer;}
+
+.empty{padding:22px;text-align:center;color:var(--muted2);font-size:13px;}
+.lbar{height:2px;background:linear-gradient(90deg,var(--accent),var(--accent2),var(--accent));background-size:200%;animation:sh 1.2s infinite;position:fixed;top:0;left:0;right:0;z-index:99;display:none;}
+.lbar.on{display:block;}
+@keyframes sh{0%{background-position:100%}100%{background-position:-100%}}
+.toast{position:fixed;bottom:22px;right:22px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--r);padding:11px 16px;font-size:13px;color:var(--text);z-index:200;opacity:0;transform:translateY(8px);transition:all .2s;pointer-events:none;max-width:280px;}
+.toast.show{opacity:1;transform:translateY(0);}
+.toast.ok{border-left:3px solid var(--success);}
+.toast.err{border-left:3px solid var(--danger);}
+@media(max-width:600px){.grid{padding:12px;grid-template-columns:1fr;}.topbar,.fbar{padding:10px 13px;}}
+</style>
+</head>
+<body>
+<div class="lbar" id="lbar"></div>
+<div class="toast" id="toast"></div>
+
+<div class="topbar">
+  <div style="display:flex;align-items:center;gap:10px">
+    <div class="logo">🎯</div>
+    <span class="app-title">F1 & RB — Tasks & Objectives</span>
+    <span class="tag">CNN Umbrella · Google Sheets live</span>
+  </div>
+  <div class="topbar-r">
+    <div class="sync-row">
+      <div class="sdot spin" id="sdot"></div>
+      <span id="slabel">Connecting…</span>
+    </div>
+    <button class="btn" onclick="syncData()">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+      Sync
+    </button>
+    <button class="btn ghost" onclick="exportCSV()">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Export
+    </button>
+  </div>
+</div>
+
+<div class="kpi-strip">
+  <div class="kpi"><div class="kpi-v a" id="kTotal">—</div><div class="kpi-l">Total tasks</div></div>
+  <div class="kpi"><div class="kpi-v g" id="kDone">—</div><div class="kpi-l">Completed</div></div>
+  <div class="kpi"><div class="kpi-v w" id="kPending">—</div><div class="kpi-l">In progress</div></div>
+  <div class="kpi"><div class="kpi-v d" id="kOverdue">—</div><div class="kpi-l">Overdue</div></div>
+  <div class="kpi"><div class="kpi-v a" id="kOverall">—%</div><div class="kpi-l">Overall completion</div></div>
+</div>
+
+<div class="fbar">
+  <div class="search-w">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input class="si" id="si" placeholder="Search tasks…" oninput="renderAll()">
+  </div>
+  <div class="chips" id="schips">
+    <div class="chip active" onclick="setFilter('status','all',this)">All</div>
+    <div class="chip" onclick="setFilter('status','pending',this)">In progress</div>
+    <div class="chip" onclick="setFilter('status','overdue',this)">Overdue</div>
+    <div class="chip" onclick="setFilter('status','done',this)">Completed</div>
+  </div>
+  <div class="chips" id="pchips">
+    <div class="chip active" onclick="setFilter('person','all',this)">Everyone</div>
+    <div class="chip f1" onclick="setFilter('person','F1',this)">F1</div>
+    <div class="chip" onclick="setFilter('person','RB',this)">RB</div>
+  </div>
+</div>
+
+<div class="grid" id="grid"></div>
+
+<script>
+const SCRIPT   = "https://script.google.com/macros/s/AKfycbyBDHjooGJ5DEtR8Ob0BKuxjXZly2PeRt3Maz_IpdTN3jroU1FLE9LYbR-3QoTTNYM/exec";
+const BRANCHES = ["CNN","ISMA","TSKL","RML","CPL","FTL","KSD","LK"];
+const COLORS   = {CNN:"#6C63FF",ISMA:"#00D4AA",TSKL:"#f0883e",RML:"#e06c75",CPL:"#61afef",FTL:"#c678dd",KSD:"#98c379",LK:"#e5c07b"};
+
+let tasks   = [];
+let filters = {status:"all", person:"all"};
+let openAdd = {};
+let openRow = null; // only one detail panel open at a time
+
+// ── Sync ──────────────────────────────────────────────────────
+async function syncData() {
+  loading(true); dot("spin","Syncing…");
+  try {
+    const res = await fetch(SCRIPT + "?t=" + Date.now());
+    const j   = await res.json();
+    const rows = j.data || j;
+    tasks = rows.map(r => ({
+      rowIndex:   r.rowIndex,
+      branch:     (r.category   || r[0] || "").toString().trim().toUpperCase(),
+      person:     (r.person     || r[1] || "").toString().trim(),
+      name:       (r.task       || r[2] || "").toString().trim(),
+      targetDate: (r.targetDate || r[3] || "").toString().trim(),
+      completed:  String(r.completed || r[4] || "").toLowerCase() === "true",
+      notes:      (r.notes      || r[5] || "").toString().trim(),
+    })).filter(t => t.name);
+    dot("ok", "Synced " + new Date().toLocaleTimeString());
+    toast("Sheet synced ✓", "ok");
+  } catch(e) {
+    dot("err", "Sync failed — demo mode");
+    toast("Could not reach Google Sheets", "err");
+    loadDemo();
+  }
+  renderAll();
+  loading(false);
+}
+
+// Fire-and-forget POST — never blocks the UI under any circumstances
+function postAction(payload) {
+  fetch(SCRIPT, {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify(payload),
+    mode: "no-cors"
+  }).catch(() => {});
+}
+
+// ── Toggle complete ───────────────────────────────────────────
+// Plain synchronous function — no async, no await, no blocking
+function toggleTask(rowIndex) {
+  const t = tasks.find(x => x.rowIndex === rowIndex);
+  if (!t) return;
+  t.completed = !t.completed;
+  if (t.completed) openRow = null; // close detail on complete
+  renderAll();
+  toast(t.completed ? "Marked complete ✓" : "Marked in progress", "ok");
+  postAction({action:"toggle", rowIndex});
+}
+
+// ── Add task ──────────────────────────────────────────────────
+function addTask(branch) {
+  const name   = v("af-name-"   + branch);
+  const person = v("af-person-" + branch) || "RB";
+  const date   = v("af-date-"   + branch);
+  const notes  = v("af-notes-"  + branch);
+  if (!name) { toast("Enter a task name", "err"); return; }
+  tasks.push({rowIndex: Date.now(), branch, person, name, targetDate: date, completed: false, notes});
+  openAdd[branch] = false;
+  renderAll();
+  toast("Task added to " + branch + " ✓", "ok");
+  postAction({action:"add", category:branch, person, task:name, targetDate:date, notes});
+  setTimeout(syncData, 2000);
+}
+
+// ── Delete task ───────────────────────────────────────────────
+function deleteTask(rowIndex) {
+  if (!confirm("Delete this task?")) return;
+  const t = tasks.find(x => x.rowIndex === rowIndex);
+  tasks = tasks.filter(x => x.rowIndex !== rowIndex);
+  if (openRow === rowIndex) openRow = null;
+  renderAll();
+  toast("Task deleted", "ok");
+  postAction({action:"delete", rowIndex});
+}
+
+// ── Toggle detail row ─────────────────────────────────────────
+function toggleDetail(rowIndex) {
+  openRow = (openRow === rowIndex) ? null : rowIndex;
+  renderAll();
+}
+
+// ── Demo data ─────────────────────────────────────────────────
+function loadDemo() {
+  tasks = [
+    {rowIndex:2, branch:"CNN",  person:"F1", name:"Quarterly review draft",      targetDate:"2025-07-30", completed:false, notes:"Awaiting inputs from department heads"},
+    {rowIndex:3, branch:"CNN",  person:"RB", name:"Staff appraisals Q2",          targetDate:"2025-07-10", completed:true,  notes:""},
+    {rowIndex:4, branch:"ISMA", person:"F1", name:"Policy framework update",      targetDate:"2025-08-05", completed:false, notes:"Legal review pending"},
+    {rowIndex:5, branch:"ISMA", person:"RB", name:"Compliance audit prep",        targetDate:"2025-07-08", completed:false, notes:"Documents due end of week"},
+    {rowIndex:6, branch:"TSKL", person:"F1", name:"Budget submissions",           targetDate:"2025-07-20", completed:true,  notes:""},
+    {rowIndex:7, branch:"RML",  person:"RB", name:"Training calendar 2025",       targetDate:"2025-08-15", completed:false, notes:"Confirm venue booking"},
+    {rowIndex:8, branch:"CPL",  person:"F1", name:"KPI tracking review",          targetDate:"2025-07-25", completed:false, notes:""},
+    {rowIndex:9, branch:"KSD",  person:"RB", name:"Headcount reconciliation",     targetDate:"2025-07-28", completed:false, notes:"Cross-check with finance"},
+    {rowIndex:10,branch:"LK",   person:"F1", name:"Onboarding checklist update",  targetDate:"2025-08-01", completed:true,  notes:""},
+  ];
+}
+
+// ── Render ────────────────────────────────────────────────────
+function renderAll() {
+  updateKPIs();
+  const grid = document.getElementById("grid");
+  const scrollTops = {};
+  grid.querySelectorAll(".tasks-scroll").forEach(el => {
+    const card = el.closest(".card");
+    if (card) scrollTops[card.dataset.branch] = el.scrollTop;
+  });
+
+  grid.innerHTML = "";
+  const today = new Date(); today.setHours(0,0,0,0);
+  const soon  = new Date(today); soon.setDate(soon.getDate() + 7);
+  const vis   = getFiltered();
+
+  BRANCHES.forEach(branch => {
+    const brAll = tasks.filter(t => t.branch === branch);
+    const brVis = vis.filter(t => t.branch === branch);
+    const hasFilter = filters.status !== "all" || filters.person !== "all" || document.getElementById("si").value;
+    if (!brVis.length && hasFilter) return;
+
+    const done  = brAll.filter(t => t.completed).length;
+    const total = brAll.length;
+    const pct   = total ? Math.round(done / total * 100) : 0;
+    const col   = COLORS[branch] || "#6C63FF";
+
+    let rowsHtml = "";
+    if (!brVis.length) {
+      rowsHtml = `<tr><td colspan="4"><div class="empty">No tasks match filters</div></td></tr>`;
+    } else {
+      brVis.forEach(t => {
+        const d    = t.targetDate ? new Date(t.targetDate) : null;
+        const over = d && !t.completed && d < today;
+        const near = d && !t.completed && d >= today && d <= soon;
+        const cls  = t.completed ? "done-row" : over ? "overdue" : near ? "soon" : "";
+        const ds   = d ? d.toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"2-digit"}) : "No date";
+        const isOpen = openRow === t.rowIndex;
+        const statusColor = t.completed ? "var(--success)" : over ? "var(--danger)" : near ? "var(--warn)" : "var(--muted)";
+        const statusText  = t.completed ? "Completed" : over ? "Overdue" : near ? "Due soon" : "In progress";
+
+        rowsHtml += `
+        <tr class="trow ${cls}" onclick="toggleDetail(${t.rowIndex})">
+          <td style="width:28px;padding-right:0" onclick="event.stopPropagation()">
+            <button class="cbtn ${t.completed?"done":""}" onclick="toggleTask(${t.rowIndex})" title="${t.completed?"Mark incomplete":"Mark complete"}">
+              <svg class="tick" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#3fb950" stroke-width="3.5"><polyline points="20 6 9 17 4 12"/></svg>
+            </button>
+          </td>
+          <td><div class="tname">${esc(t.name)}</div></td>
+          <td style="text-align:center"><span class="pbadge ${esc(t.person)}">${esc(t.person)||"—"}</span></td>
+          <td style="text-align:right"><span class="tdate">${ds}</span></td>
+        </tr>
+        <tr>
+          <td colspan="4" style="padding:0;background:var(--surface2)">
+            <div class="detail-panel ${isOpen?"open":""}">
+              <div class="detail-inner">
+                <div class="detail-field"><span class="detail-label">Assigned to</span><span class="detail-value">${esc(t.person)||"—"}</span></div>
+                <div class="detail-field"><span class="detail-label">Target date</span><span class="detail-value">${ds}</span></div>
+                <div class="detail-field"><span class="detail-label">Status</span><span class="detail-value" style="color:${statusColor}">${statusText}</span></div>
+                <div class="detail-field"><span class="detail-label">Branch</span><span class="detail-value">${esc(branch)}</span></div>
+                ${t.notes ? `<div class="detail-field" style="grid-column:1/-1"><span class="detail-label">Notes</span><span class="detail-value note">${esc(t.notes)}</span></div>` : ""}
+                ${!t.completed ? `<div style="grid-column:1/-1"><button class="del-btn" onclick="event.stopPropagation();deleteTask(${t.rowIndex})">Delete task</button></div>` : ""}
+              </div>
+            </div>
+          </td>
+        </tr>`;
+      });
+    }
+
+    const card = document.createElement("div");
+    card.className = "card";
+    card.dataset.branch = branch;
+    card.innerHTML = `
+      <div class="card-head">
+        <div class="bname">
+          <div class="bicon" style="background:${col}22;color:${col}">${branch}</div>
+          ${branch}
+          <span class="btask-count">${total} task${total!==1?"s":""}</span>
+        </div>
+        <div class="ring-w">
+          ${ringChart(pct, col)}
+          <div class="ring-lbl">${pct}%</div>
+        </div>
+      </div>
+      <div class="prog-track"><div class="prog-fill" style="width:${pct}%"></div></div>
+      <div class="tasks-scroll">
+        <table>
+          <thead><tr>
+            <th style="width:28px"></th>
+            <th>Task</th>
+            <th style="text-align:center">Person</th>
+            <th style="text-align:right">Target</th>
+          </tr></thead>
+          <tbody>${rowsHtml}</tbody>
+        </table>
+      </div>
+      ${openAdd[branch] ? addFormHtml(branch) : `
+      <button class="add-toggle" onclick="openAdd['${branch}']=true;renderAll()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add task
+      </button>`}
+    `;
+    grid.appendChild(card);
+
+    // Restore scroll position
+    if (scrollTops[branch]) {
+      const sc = card.querySelector(".tasks-scroll");
+      if (sc) sc.scrollTop = scrollTops[branch];
+    }
+  });
+}
+
+function addFormHtml(b) {
+  return `<div class="add-form-wrap">
+    <div class="af-grid">
+      <input class="af-input" id="af-name-${b}" placeholder="Task name…">
+      <select class="af-select" id="af-person-${b}">
+        <option value="F1">F1</option><option value="RB">RB</option><option value="Both">Both</option>
+      </select>
+      <input type="date" class="af-input" id="af-date-${b}">
+    </div>
+    <input class="af-input" id="af-notes-${b}" placeholder="Notes (optional)…">
+    <div class="af-btns">
+      <button class="af-submit" onclick="addTask('${b}')">Add task</button>
+      <button class="af-cancel" onclick="openAdd['${b}']=false;renderAll()">Cancel</button>
+    </div>
+  </div>`;
+}
+
+function ringChart(pct, col) {
+  const r = 14, cx = 19, circ = 2 * Math.PI * r;
+  const filled = circ * pct / 100;
+  return `<svg viewBox="0 0 38 38">
+    <circle cx="${cx}" cy="${cx}" r="${r}" fill="none" stroke="var(--border)" stroke-width="3.5"/>
+    <circle cx="${cx}" cy="${cx}" r="${r}" fill="none" stroke="${col}" stroke-width="3.5"
+      stroke-dasharray="${filled} ${circ}" stroke-dashoffset="${circ * 0.25}" stroke-linecap="round"/>
+  </svg>`;
+}
+
+function updateKPIs() {
+  const today   = new Date(); today.setHours(0,0,0,0);
+  const total   = tasks.length;
+  const done    = tasks.filter(t => t.completed).length;
+  const pending = tasks.filter(t => !t.completed).length;
+  const overdue = tasks.filter(t => !t.completed && t.targetDate && new Date(t.targetDate) < today).length;
+  const pct     = total ? Math.round(done / total * 100) : 0;
+  document.getElementById("kTotal").textContent   = total;
+  document.getElementById("kDone").textContent    = done;
+  document.getElementById("kPending").textContent = pending;
+  document.getElementById("kOverdue").textContent = overdue;
+  document.getElementById("kOverall").textContent = pct + "%";
+}
+
+function getFiltered() {
+  const q     = document.getElementById("si").value.toLowerCase();
+  const today = new Date(); today.setHours(0,0,0,0);
+  return tasks.filter(t => {
+    if (filters.person !== "all" && t.person !== filters.person) return false;
+    if (q && !t.name.toLowerCase().includes(q) && !t.branch.toLowerCase().includes(q)) return false;
+    if (filters.status === "done"    && !t.completed) return false;
+    if (filters.status === "pending" && t.completed)  return false;
+    if (filters.status === "overdue") {
+      if (t.completed || !t.targetDate || new Date(t.targetDate) >= today) return false;
+    }
+    return true;
+  });
+}
+
+function setFilter(type, val, el) {
+  filters[type] = val;
+  const grp = type === "status" ? "schips" : "pchips";
+  document.querySelectorAll("#" + grp + " .chip").forEach(c => c.classList.remove("active"));
+  el.classList.add("active");
+  renderAll();
+}
+
+function exportCSV() {
+  const rows = [["Branch","Person","Task","Target Date","Completed","Notes"]];
+  tasks.forEach(t => rows.push([t.branch, t.person, t.name, t.targetDate, t.completed?"Yes":"No", t.notes]));
+  const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(",")).join("\n");
+  const a = document.createElement("a");
+  a.href = "data:text/csv;charset=utf-8," + encodeURIComponent(csv);
+  a.download = "f1-rb-tasks.csv";
+  a.click();
+  toast("CSV exported", "ok");
+}
+
+function v(id)   { const e = document.getElementById(id); return e ? e.value.trim() : ""; }
+function esc(s)  { const d = document.createElement("div"); d.textContent = s; return d.innerHTML; }
+function loading(on) { document.getElementById("lbar").classList.toggle("on", on); }
+function dot(cls, lbl) {
+  document.getElementById("sdot").className = "sdot " + cls;
+  document.getElementById("slabel").textContent = lbl;
+}
+function toast(msg, type) {
+  const el = document.getElementById("toast");
+  el.textContent = msg;
+  el.className = "toast show " + (type || "");
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.className = "toast", 2800);
+}
+
+syncData();
+</script>
+</body>
+</html>
