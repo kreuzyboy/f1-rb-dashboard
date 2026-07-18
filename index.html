@@ -260,7 +260,7 @@ async function postAction(payload) {
   } catch(e) { return false; }
 }
 
-async function toggleTask(rowIndex) {
+function toggleTask(rowIndex) {
   const t = tasks.find(x=>x.rowIndex===rowIndex);
   if(!t) return;
   t.completed = !t.completed;
@@ -268,48 +268,48 @@ async function toggleTask(rowIndex) {
   // Auto-close detail panel when marking complete
   if(t.completed) openDetail[rowIndex] = false;
 
-  // Surgical DOM update — update only the affected row elements, no full re-render
-  const cbtn = document.querySelector(`.cbtn[data-id="${rowIndex}"]`);
-  const trow = document.querySelector(`.trow[data-id="${rowIndex}"]`);
-  const detailPanel = document.querySelector(`.detail-panel[data-id="${rowIndex}"]`);
-  const delBtn = document.querySelector(`.del-btn[data-id="${rowIndex}"]`);
+  // Surgical DOM update — never blocks the UI
+  const cbtn       = document.querySelector(`.cbtn[data-id="${rowIndex}"]`);
+  const trow       = document.querySelector(`.trow[data-id="${rowIndex}"]`);
+  const detailPanel= document.querySelector(`.detail-panel[data-id="${rowIndex}"]`);
+  const delBtn     = document.querySelector(`.del-btn[data-id="${rowIndex}"]`);
   const statusSpan = document.querySelector(`.status-val[data-id="${rowIndex}"]`);
 
-  if(cbtn) { cbtn.classList.toggle("done", t.completed); }
+  if(cbtn) cbtn.classList.toggle("done", t.completed);
+
   if(trow) {
     trow.classList.toggle("completed", t.completed);
     trow.classList.remove("overdue","soon");
     if(!t.completed && t.targetDate) {
       const today = new Date(); today.setHours(0,0,0,0);
-      const soon = new Date(today); soon.setDate(soon.getDate()+7);
+      const soon  = new Date(today); soon.setDate(soon.getDate()+7);
       const d = new Date(t.targetDate);
       if(d < today) trow.classList.add("overdue");
       else if(d <= soon) trow.classList.add("soon");
     }
   }
-  if(detailPanel) {
-    detailPanel.classList.remove("open");
-  }
-  if(delBtn) {
-    delBtn.style.display = t.completed ? "none" : "";
-  }
+
+  if(detailPanel) detailPanel.classList.remove("open");
+  if(delBtn)      delBtn.style.display = t.completed ? "none" : "";
+
   if(statusSpan) {
     const today = new Date(); today.setHours(0,0,0,0);
-    const soon = new Date(today); soon.setDate(soon.getDate()+7);
-    const d = t.targetDate ? new Date(t.targetDate) : null;
-    const over = d&&!t.completed&&d<today;
-    const near = d&&!t.completed&&d>=today&&d<=soon;
-    statusSpan.textContent = t.completed?"Completed":over?"Overdue":near?"Due soon":"In progress";
-    statusSpan.style.color = t.completed?"var(--success)":over?"var(--danger)":near?"var(--warn)":"var(--muted)";
+    const soon  = new Date(today); soon.setDate(soon.getDate()+7);
+    const d    = t.targetDate ? new Date(t.targetDate) : null;
+    const over = d && !t.completed && d < today;
+    const near = d && !t.completed && d >= today && d <= soon;
+    statusSpan.textContent  = t.completed ? "Completed" : over ? "Overdue" : near ? "Due soon" : "In progress";
+    statusSpan.style.color  = t.completed ? "var(--success)" : over ? "var(--danger)" : near ? "var(--warn)" : "var(--muted)";
   }
 
-  // Update KPIs and branch ring/bar without touching the task rows
   updateKPIs();
   updateBranchStats(t.branch);
+  toast(t.completed ? "Marked complete ✓" : "Marked in progress", "ok");
 
-  toast(t.completed ? "Marked complete ✓" : "Marked in progress","ok");
-  const ok = await postAction({action:"toggle", rowIndex});
-  if(!ok) toast("Saved locally — sheet update may be delayed","err");
+  // Fire-and-forget — do NOT await, so the UI is never blocked by the network call
+  postAction({action:"toggle", rowIndex}).catch(() =>
+    toast("Sheet sync failed — changes saved locally","err")
+  );
 }
 
 async function deleteTask(rowIndex) {
@@ -331,8 +331,10 @@ async function addTask(branch) {
   openAdd[branch] = false;
   renderAll();
   toast("Task added to "+branch+" ✓","ok");
-  const ok = await postAction({action:"add", category:branch, person, task:name, targetDate:date, notes});
-  if(ok) setTimeout(syncData, 1500);  // re-sync to get real rowIndex from sheet
+  // Fire-and-forget POST, then re-sync to get real rowIndex
+  postAction({action:"add", category:branch, person, task:name, targetDate:date, notes})
+    .then(() => setTimeout(syncData, 1500))
+    .catch(() => toast("Sheet sync failed","err"));
 }
 
 function loadDemo() {
