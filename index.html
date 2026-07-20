@@ -63,9 +63,9 @@ body{font-family:var(--fn);background:var(--bg);color:var(--tx);font-size:14px;}
 .bn{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:600;}
 .bi{width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;font-family:var(--mo);flex-shrink:0;}
 .bc{font-size:11px;color:var(--mu);font-weight:400;}
-.rw{position:relative;width:54px;height:54px;flex-shrink:0;}
-.rw svg{position:absolute;inset:0;width:54px;height:54px;}
-.rl{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;font-family:var(--mo);color:var(--tx);}
+.rw{position:relative;width:54px;height:54px;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.rw svg{width:54px;height:54px;flex-shrink:0;}
+.rl{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;font-family:var(--mo);color:var(--tx);pointer-events:none;}
 .pt{height:3px;background:var(--bd);}
 .pf{height:3px;background:linear-gradient(90deg,var(--ac),var(--ac2));transition:width .3s;}
 
@@ -181,8 +181,8 @@ th{font-size:10px;font-weight:600;color:var(--mu2);text-transform:uppercase;lett
 
 <script>
 const URL2  = "https://script.google.com/macros/s/AKfycbyBDHjooGJ5DEtR8Ob0BKuxjXZly2PeRt3Maz_IpdTN3jroU1FLE9LYbR-3QoTTNYM/exec";
-const BLIST = ["CNN","ISMA","TSKL","RML","CPL","FTL","KSD","LK"];
-const CLR   = {CNN:"#6C63FF",ISMA:"#00D4AA",TSKL:"#f0883e",RML:"#e06c75",CPL:"#61afef",FTL:"#c678dd",KSD:"#98c379",LK:"#e5c07b"};
+const BLIST = ["CNN","ISMA","TSKL","RML","CPL","FTL","KSD","LK","DRLK"];
+const CLR   = {CNN:"#6C63FF",ISMA:"#00D4AA",TSKL:"#f0883e",RML:"#e06c75",CPL:"#61afef",FTL:"#c678dd",KSD:"#98c379",LK:"#e5c07b",DRLK:"#56b6c2"};
 
 var tasks   = [];
 var fS      = "all";   // status filter
@@ -219,7 +219,11 @@ async function syncData() {
 }
 
 function post(payload) {
-  fetch(URL2,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload),mode:"no-cors"}).catch(function(){});
+  // Use GET with params — works reliably from GitHub Pages to Apps Script
+  var params = Object.keys(payload).map(function(k){
+    return encodeURIComponent(k) + "=" + encodeURIComponent(payload[k]);
+  }).join("&");
+  fetch(URL2 + "?" + params + "&t=" + Date.now()).catch(function(){});
 }
 
 /* ── actions ── */
