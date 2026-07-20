@@ -197,9 +197,9 @@ async function syncData() {
     var res = await fetch(URL2 + "?t=" + Date.now());
     var j   = await res.json();
     var rows = j.data || j;
-    tasks = rows.map(function(r){
+    tasks = rows.map(function(r, i){
       return {
-        id:    parseInt(r.rowIndex) || 0,
+        id:    parseInt(r.rowIndex) > 0 ? parseInt(r.rowIndex) : (i + 2),
         br:    (r.category   || r[0] || "").toString().trim().toUpperCase(),
         who:   (r.person     || r[1] || "").toString().trim(),
         name:  (r.task       || r[2] || "").toString().trim(),
