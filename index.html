@@ -63,8 +63,8 @@ body{font-family:var(--fn);background:var(--bg);color:var(--tx);font-size:14px;}
 .bn{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:600;}
 .bi{width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;font-family:var(--mo);flex-shrink:0;}
 .bc{font-size:11px;color:var(--mu);font-weight:400;}
-.rw{position:relative;width:54px;height:54px;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
-.rw svg{width:54px;height:54px;flex-shrink:0;}
+.rw{position:relative;width:56px;height:56px;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.rw svg{width:56px;height:56px;flex-shrink:0;}
 .rl{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;font-family:var(--mo);color:var(--tx);pointer-events:none;}
 .pt{height:3px;background:var(--bd);}
 .pf{height:3px;background:linear-gradient(90deg,var(--ac),var(--ac2));transition:width .3s;}
@@ -190,6 +190,21 @@ var fP      = "all";   // person filter
 var addOpen = {};      // branch -> bool
 var openID  = -1;      // which task detail is open (-1 = none)
 
+// Load completed overrides from localStorage — persists across refreshes
+function getOverrides() {
+  try { return JSON.parse(localStorage.getItem("f1rb_done") || "{}"); } catch(e) { return {}; }
+}
+function saveOverride(id, done) {
+  var ov = getOverrides();
+  ov[id] = done;
+  localStorage.setItem("f1rb_done", JSON.stringify(ov));
+}
+function clearOverride(id) {
+  var ov = getOverrides();
+  delete ov[id];
+  localStorage.setItem("f1rb_done", JSON.stringify(ov));
+}
+
 /* ── sync ── */
 async function syncData() {
   bar(1); dot("spin","Syncing…");
@@ -197,7 +212,7 @@ async function syncData() {
     var res = await fetch(URL2 + "?t=" + Date.now());
     var j   = await res.json();
     var rows = j.data || j;
-    tasks = rows.map(function(r, i){
+    var incoming = rows.map(function(r, i){
       return {
         id:    parseInt(r.rowIndex) > 0 ? parseInt(r.rowIndex) : (i + 2),
         br:    (r.category   || r[0] || "").toString().trim().toUpperCase(),
@@ -208,6 +223,20 @@ async function syncData() {
         note:  (r.notes      || r[5] || "").toString().trim(),
       };
     }).filter(function(t){ return t.name; });
+    // Apply localStorage overrides — if sheet hasn't confirmed yet, keep local state
+    var ov = getOverrides();
+    incoming.forEach(function(t){
+      if (ov[t.id] !== undefined) {
+        // If sheet now matches our override, clear it — sheet has caught up
+        if (ov[t.id] === t.done) {
+          clearOverride(t.id);
+        } else {
+          // Sheet hasn't updated yet — keep our local state
+          t.done = ov[t.id];
+        }
+      }
+    });
+    tasks = incoming;
     dot("ok","Synced " + new Date().toLocaleTimeString());
     showToast("Sheet synced ✓","ok");
   } catch(e) {
@@ -232,10 +261,11 @@ function tick(id) {
   var t = tasks.filter(function(x){ return x.id === id; })[0];
   if (!t) return;
   t.done = !t.done;
+  saveOverride(id, t.done);  // immediately persist to localStorage
   if (t.done) openID = -1;
   draw();
   showToast(t.done ? "Marked complete ✓" : "Marked in progress","ok");
-  post({action:"toggle", rowIndex:id});
+  post({action:"toggle", rowIndex:id, value:t.done ? "true" : "false"});
 }
 
 function expand(id) {
@@ -393,10 +423,16 @@ function draw() {
 }
 
 function ring(pct, col) {
-  var r=22, cx=27, ci=2*Math.PI*r, f=ci*pct/100;
-  return '<svg viewBox="0 0 54 54" style="filter:none">' +
-    '<circle cx="'+cx+'" cy="'+cx+'" r="'+r+'" fill="none" stroke="var(--bd)" stroke-width="4"/>' +
-    '<circle cx="'+cx+'" cy="'+cx+'" r="'+r+'" fill="none" stroke="'+col+'" stroke-width="4" stroke-dasharray="'+f+' '+ci+'" stroke-dashoffset="'+(ci*.25)+'" stroke-linecap="round" style="filter:none"/>' +
+  // Rounded square using a rect with rx — perimeter based progress
+  var size=56, pad=5, rx=8;
+  var w=size-pad*2, h=size-pad*2;
+  // Perimeter of rounded rect
+  var perim = 2*(w-2*rx) + 2*(h-2*rx) + 2*Math.PI*rx;
+  var filled = perim * pct / 100;
+  return '<svg viewBox="0 0 '+size+' '+size+'" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+    '<rect x="'+pad+'" y="'+pad+'" width="'+w+'" height="'+h+'" rx="'+rx+'" ry="'+rx+'" stroke="var(--bd)" stroke-width="4" fill="none"/>' +
+    '<rect x="'+pad+'" y="'+pad+'" width="'+w+'" height="'+h+'" rx="'+rx+'" ry="'+rx+'" stroke="'+col+'" stroke-width="4" fill="none"' +
+    ' stroke-dasharray="'+filled+' '+perim+'" stroke-dashoffset="'+(perim*0.25)+'" stroke-linecap="round"/>' +
     '</svg>';
 }
 
